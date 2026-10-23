@@ -911,7 +911,7 @@
     }
     tbody.innerHTML = state.campaigns.slice(0, 5).map(campaign => {
       const m = campaignMetrics(campaign.campaign_id);
-      return '<tr><td><div class="campaign-name-cell"><b>' + esc(campaign.name) + '</b><small>' + esc(campaign.platform || 'other') + '</small></div></td><td>' + platformPill(campaign.platform) + '</td><td class="metric-value">' + money(campaign.budget) + '</td><td class="metric-value">' + money(m.spend) + '</td><td class="metric-value">' + (m.ctr === null ? '—' : decimal(m.ctr, 2) + '%') + '</td></tr>';
+      return '<tr><td><div class="campaign-name-cell"><b>' + esc(campaign.name) + '</b><small>' + esc(campaign.platform || 'other') + '</small></div></td><td>' + platformPill(campaign.platform) + '</td><td class="metric-value">' + money(m.spend) + '</td><td class="metric-value">' + ratio(m.roas) + '</td><td>' + statusPill(campaign.status) + '</td></tr>';
     }).join('');
   }
 
