@@ -1,78 +1,183 @@
 <!doctype html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#174b37">
-  <meta name="description" content="Halal Food — আপনার প্রতিদিনের রান্না ও গ্রোসারির জন্য বেছে নেওয়া পণ্য।">
-  <title>Halal Food — প্রতিদিনের ভালো পছন্দ</title>
+  <meta name="theme-color" content="#111a18">
+  <meta name="description" content="AdPulse is a performance marketer's workspace for campaign diagnostics, optimization tasks, experiments and tracking.">
+  <title>AdPulse — Performance Marketing OS</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="announcement">আপনার দৈনন্দিন বাজারে সহজ, যত্নে বেছে নেওয়া পণ্য</div>
-  <header class="site-header">
-    <a class="brand" href="#home" aria-label="Halal Food হোম">
-      <span class="brand-mark" aria-hidden="true">❋</span>
-      <span class="brand-name">Halal <b>Food</b><small>ভালো পছন্দ, প্রতিদিন</small></span>
-    </a>
-    <button class="menu-toggle" aria-label="মেনু খুলুন" aria-expanded="false"><span></span><span></span><span></span></button>
-    <nav class="main-nav" aria-label="প্রধান নেভিগেশন">
-      <a href="#home">হোম</a><a href="#products">পণ্যসমূহ</a><a href="#about">আমাদের সম্পর্কে</a><a href="#contact">যোগাযোগ</a>
-    </nav>
-    <a class="header-cta" href="#products">পণ্য দেখুন <span aria-hidden="true">↗</span></a>
-  </header>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
-  <main>
-    <section class="hero" id="home">
-      <div class="hero-copy">
-        <span class="eyebrow"><span class="eyebrow-dot"></span> আপনার পরিবারের জন্য</span>
-        <h1>প্রতিদিনের রান্নায়<br><em>ভালো পছন্দ</em> বেছে নিন।</h1>
-        <p>রান্নাঘরের প্রয়োজনীয় তেল ও গ্রোসারি পণ্য খুঁজে নিন এক জায়গায়। পণ্য বেছে নেওয়া থেকে অর্ডারের তথ্য—সবকিছু সহজ ও পরিষ্কারভাবে।</p>
-        <div class="hero-actions"><a class="button button-primary" href="#products">আমাদের পণ্য দেখুন <span aria-hidden="true">→</span></a><a class="text-link" href="#about">Halal Food সম্পর্কে <span aria-hidden="true">↗</span></a></div>
-        <div class="hero-note"><span class="note-icon">✳</span><span><b>যত্নে বেছে নেওয়া</b><small>প্রতিদিনের প্রয়োজনের কথা ভেবে</small></span></div>
+  <section id="auth-screen" class="auth-screen">
+    <div class="auth-left">
+      <a class="auth-brand" href="#" aria-label="AdPulse home"><span class="brand-symbol"><i></i><i></i><i></i></span><span>adpulse<span class="brand-dot">.</span></span></a>
+      <div class="auth-pitch">
+        <span class="eyebrow"><span class="pulse-dot"></span> PERFORMANCE MARKETING OS</span>
+        <h1>Move from<br><em>metrics</em> to momentum.</h1>
+        <p>Your command center for campaign diagnostics, optimization tasks, testing memory and tracking hygiene.</p>
+        <div class="auth-feature-list">
+          <div><span class="feature-check">✓</span><span><b>Find what needs attention</b><small>Evidence-led campaign signals</small></span></div>
+          <div><span class="feature-check">✓</span><span><b>Make every test count</b><small>Remember what you changed and learned</small></span></div>
+          <div><span class="feature-check">✓</span><span><b>Build a repeatable workflow</b><small>Turn analysis into action</small></span></div>
+        </div>
       </div>
-      <div class="hero-art" aria-label="রান্নাঘরের তেল ও প্রাকৃতিক উপাদানের অলংকারমূলক চিত্র" role="img">
-        <div class="art-cream"></div><div class="sun-disc"></div>
-        <div class="leaf leaf-one"></div><div class="leaf leaf-two"></div><div class="leaf leaf-three"></div>
-        <div class="oil-bottle bottle-large"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"><div class="bottle-label"><span>HALAL</span><b>FOOD</b><i>PURE & SIMPLE</i></div></div></div>
-        <div class="oil-bottle bottle-small"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"><div class="bottle-label bottle-label-small"><span>HALAL</span><b>FOOD</b></div></div></div>
-        <div class="seed seed-one"></div><div class="seed seed-two"></div><div class="seed seed-three"></div>
-        <div class="art-caption"><span>01 / EVERYDAY ESSENTIALS</span><b>Simple choices. Thoughtfully selected.</b></div>
+      <div class="auth-foot"><span>BUILT FOR THE PEOPLE BEHIND THE PERFORMANCE.</span><span>ADPULSE / 01</span></div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-card">
+        <div class="mobile-auth-brand"><span class="brand-symbol"><i></i><i></i><i></i></span><b>adpulse<span class="brand-dot">.</span></b></div>
+        <span class="eyebrow" id="auth-eyebrow">YOUR WORKSPACE</span>
+        <h2 id="auth-title">Welcome back.</h2>
+        <p class="auth-subtitle" id="auth-subtitle">Sign in to continue to your performance workspace.</p>
+        <form id="auth-form" class="form-stack">
+          <label id="name-field" class="field hidden">Full name<input id="auth-name" type="text" autocomplete="name" placeholder="Your name"></label>
+          <label class="field">Email address<input id="auth-email" type="email" autocomplete="email" placeholder="you@company.com" required></label>
+          <label class="field">Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></label>
+          <button id="auth-submit" class="btn btn-primary btn-wide" type="submit">Sign in <span aria-hidden="true">↗</span></button>
+        </form>
+        <div class="auth-tools"><button type="button" class="text-button" id="forgot-password">Forgot password?</button><span class="auth-separator"></span><button type="button" class="text-button" id="auth-toggle">Create an account</button></div>
+        <div id="auth-message" class="inline-message" role="status"></div>
+        <div class="auth-trust"><span class="lock-mark">⌑</span><span>Your data is private to your signed-in account.</span></div>
       </div>
-      <div class="hero-bottom"><span>ভালো পণ্যে, প্রতিদিনের যত্নে</span><span class="scroll-cue">নিচে দেখুন <i>↓</i></span></div>
-    </section>
+    </div>
+  </section>
 
-    <section class="products-section section-pad" id="products">
-      <div class="section-heading">
-        <div><span class="eyebrow">আমাদের সংগ্রহ</span><h2>রান্নাঘরের <em>প্রয়োজনীয়</em> পণ্য</h2></div>
-        <p>আপনার পছন্দের পণ্যটি খুঁজে নিন। দাম বা স্টক সম্পর্কে জানতে সরাসরি যোগাযোগ করুন।</p>
+  <div id="app-shell" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <a class="sidebar-brand" href="#" aria-label="AdPulse dashboard"><span class="brand-symbol"><i></i><i></i><i></i></span><span class="brand-word">adpulse<span class="brand-dot">.</span><small>PERFORMANCE OS</small></span></a>
+      <div class="workspace-switcher"><div class="workspace-avatar">AP</div><div class="workspace-text"><b>My workspace</b><small>Performance marketing</small></div><span class="switcher-chevron">⌄</span></div>
+      <div class="nav-label">WORKSPACE</div>
+      <nav class="side-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span>Overview<span class="nav-shortcut">01</span></button>
+        <button class="nav-item" data-view="campaigns"><span class="nav-icon">◎</span>Campaigns</button>
+        <button class="nav-item" data-view="diagnostics"><span class="nav-icon">⌁</span>Diagnostics<span id="signal-count" class="nav-count hidden">0</span></button>
+        <button class="nav-item" data-view="tasks"><span class="nav-icon">☷</span>Optimization queue<span id="task-count" class="nav-count hidden">0</span></button>
+        <button class="nav-item" data-view="experiments"><span class="nav-icon">⧖</span>Experiments</button>
+        <button class="nav-item" data-view="tracking"><span class="nav-icon">↗</span>Tracking toolkit</button>
+        <button class="nav-item" data-view="history"><span class="nav-icon">◷</span>Optimization memory</button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-bottom">
+        <div class="plan-card"><div class="plan-top"><span class="plan-orb">✳</span><span class="plan-label">EARLY ACCESS</span></div><b>Built for sharper decisions.</b><p>More signal. Less spreadsheet work.</p><a href="https://github.com/sobujkhamarofficial-ctrl/sarver" target="_blank" rel="noreferrer">View project notes ↗</a></div>
+        <button id="profile-button" class="profile-button"><span class="profile-avatar" id="profile-avatar">M</span><span class="profile-copy"><b id="profile-name">Marketer</b><small id="profile-email">Signed in</small></span><span class="profile-menu">⋯</span></button>
+        <button id="signout-button" class="signout-button">↗ Sign out</button>
       </div>
-      <div class="product-grid">
-        <article class="product-card" data-product="Virgin Coconut Oil"><div class="product-visual visual-coconut"><span class="product-number">01</span><div class="mini-bottle coconut-bottle"><span></span></div><div class="coconut-shape coconut-a"></div><div class="coconut-shape coconut-b"></div><div class="product-tag">প্রাকৃতিক পছন্দ</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Virgin Coconut Oil</h3><p>ভার্জিন নারিকেল তেল</p></div><button class="product-link" aria-label="Virgin Coconut Oil সম্পর্কে জানুন">↗</button></div></article>
-        <article class="product-card" data-product="Extra Virgin Olive Oil"><div class="product-visual visual-olive"><span class="product-number">02</span><div class="mini-bottle olive-bottle"><span></span></div><div class="olive-branch"><i></i><i></i><i></i><i></i></div><div class="product-tag">দৈনন্দিন সংগ্রহ</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Extra Virgin Olive Oil</h3><p>এক্সট্রা ভার্জিন অলিভ অয়েল</p></div><button class="product-link" aria-label="Extra Virgin Olive Oil সম্পর্কে জানুন">↗</button></div></article>
-        <article class="product-card" data-product="Sunflower Oil"><div class="product-visual visual-sunflower"><span class="product-number">03</span><div class="mini-bottle sunflower-bottle"><span></span></div><div class="sunflower"><div class="sunflower-core"></div></div><div class="product-tag">রান্নার সঙ্গী</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Sunflower Oil</h3><p>সূর্যমুখী তেল</p></div><button class="product-link" aria-label="Sunflower Oil সম্পর্কে জানুন">↗</button></div></article>
-        <article class="product-card" data-product="Soybean Oil"><div class="product-visual visual-soy"><span class="product-number">04</span><div class="mini-bottle soy-bottle"><span></span></div><div class="soy-beans"><i></i><i></i><i></i><i></i><i></i></div><div class="product-tag">রান্নার প্রয়োজন</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Soybean Oil</h3><p>সয়াবিন তেল</p></div><button class="product-link" aria-label="Soybean Oil সম্পর্কে জানুন">↗</button></div></article>
-        <article class="product-card" data-product="Pure Mustard Oil"><div class="product-visual visual-mustard"><span class="product-number">05</span><div class="mini-bottle mustard-bottle"><span></span></div><div class="mustard-seeds"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="product-tag">দেশি স্বাদের ছোঁয়া</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Pure Mustard Oil</h3><p>খাঁটি সরিষার তেল</p></div><button class="product-link" aria-label="Pure Mustard Oil সম্পর্কে জানুন">↗</button></div></article>
-        <a class="more-card" href="#contact"><span class="more-icon">＋</span><span class="more-title">আরও পণ্য খুঁজছেন?</span><span class="more-copy">আপনার প্রয়োজন জানাতে আমাদের সঙ্গে যোগাযোগ করুন।</span><span class="more-arrow">যোগাযোগ করুন ↗</span></a>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button id="mobile-menu" class="mobile-menu" aria-label="Open navigation">☰</button>
+        <div class="breadcrumbs"><span>Workspace</span><b>/</b><strong id="breadcrumb-current">Overview</strong></div>
+        <div class="topbar-right">
+          <span class="data-status"><span class="status-dot"></span><span id="data-status-text">Live workspace data</span></span>
+          <button class="icon-button" id="refresh-button" title="Refresh data" aria-label="Refresh data">↻</button>
+          <div class="topbar-avatar" id="topbar-avatar">M</div>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+        <section class="view active" id="view-overview">
+          <div class="page-heading heading-row">
+            <div><div class="eyebrow"><span class="pulse-dot"></span> YOUR PERFORMANCE WORKSPACE</div><h1>Good work starts with <em>good signals.</em></h1><p class="page-description">Spot what changed, decide what deserves attention, and keep learning from every test.</p></div>
+            <div class="heading-actions"><label class="range-select"><span>PERIOD</span><select id="overview-range"><option value="7">Last 7 days</option><option value="14" selected>Last 14 days</option><option value="30">Last 30 days</option></select></label><button class="btn btn-primary" data-action="new-campaign">＋ New campaign</button></div>
+          </div>
+          <div class="kpi-grid">
+            <article class="kpi-card"><div class="kpi-top"><span>ACTIVE CAMPAIGNS</span><span class="kpi-icon icon-green">◎</span></div><div class="kpi-value" id="kpi-campaigns">—</div><div class="kpi-foot"><span class="kpi-foot-dot"></span><span>Across your workspace</span></div></article>
+            <article class="kpi-card"><div class="kpi-top"><span>AD SPEND</span><span class="kpi-icon icon-orange">↗</span></div><div class="kpi-value" id="kpi-spend">৳0</div><div class="kpi-foot"><span id="kpi-spend-note">Selected period</span></div></article>
+            <article class="kpi-card"><div class="kpi-top"><span>CONVERSIONS</span><span class="kpi-icon icon-blue">✳</span></div><div class="kpi-value" id="kpi-conversions">0</div><div class="kpi-foot"><span id="kpi-conversions-note">Recorded in period</span></div></article>
+            <article class="kpi-card"><div class="kpi-top"><span>BLENDED ROAS</span><span class="kpi-icon icon-purple">↗</span></div><div class="kpi-value" id="kpi-roas">—</div><div class="kpi-foot"><span id="kpi-roas-note">Revenue ÷ spend</span></div></article>
+          </div>
+
+          <div class="overview-grid">
+            <section class="panel trend-panel">
+              <div class="panel-heading"><div><div class="eyebrow">PERFORMANCE TREND</div><h2>Spend at a glance</h2><p>Daily ad spend across your tracked campaigns.</p></div><span class="panel-badge"><span class="status-dot"></span> Synced from entries</span></div>
+              <div class="chart-legend"><span><i class="legend-spend"></i> Daily spend</span><span class="chart-unit">BDT</span></div>
+              <div id="spend-chart" class="spend-chart"><div class="chart-empty">Add daily metrics to bring your chart to life.</div></div>
+              <div id="spend-chart-labels" class="chart-labels"></div>
+            </section>
+            <section class="panel queue-preview">
+              <div class="panel-heading"><div><div class="eyebrow">WHAT NEEDS ATTENTION</div><h2>Optimization queue</h2><p>Turn signals into focused work.</p></div><button class="panel-link" data-view="tasks">View all ↗</button></div>
+              <div id="queue-preview-list" class="queue-preview-list"><div class="empty-state compact"><span class="empty-symbol">☷</span><b>Your queue starts here</b><p>Optimization tasks will appear here.</p></div></div>
+              <button class="btn btn-secondary btn-wide" data-action="new-task">＋ Add optimization task</button>
+            </section>
+          </div>
+
+          <div class="lower-grid">
+            <section class="panel campaigns-preview">
+              <div class="panel-heading"><div><div class="eyebrow">CAMPAIGN MONITOR</div><h2>Recent campaigns</h2><p>Quick access to the work in motion.</p></div><button class="panel-link" data-view="campaigns">All campaigns ↗</button></div>
+              <div class="table-scroll"><table><thead><tr><th>CAMPAIGN</th><th>PLATFORM</th><th>SPEND</th><th>ROAS</th><th>STATUS</th></tr></thead><tbody id="campaigns-preview-body"><tr><td colspan="5" class="empty-cell">No campaigns yet. Add your first campaign to begin.</td></tr></tbody></table></div>
+            </section>
+            <section class="panel signal-preview">
+              <div class="panel-heading"><div><div class="eyebrow">PERFORMANCE DETECTIVE</div><h2>Signals</h2><p>Evidence-led changes worth a look.</p></div><button class="panel-link" data-view="diagnostics">Explore ↗</button></div>
+              <div id="signal-preview-list" class="signal-preview-list"><div class="empty-state compact"><span class="empty-symbol">⌁</span><b>No signals yet</b><p>Signals will appear when campaign data meets a diagnostic rule.</p></div></div>
+            </section>
+          </div>
+          <div class="disclaimer"><span>ⓘ</span> Signals are decision support, not proof of causation. Verify tracking, sample size and campaign context before making changes.</div>
+        </section>
+
+        <section class="view" id="view-campaigns">
+          <div class="page-heading heading-row"><div><div class="eyebrow">CAMPAIGN WORKSPACE</div><h1>Campaigns, <em>in context.</em></h1><p class="page-description">Organize your paid-media work and attach daily performance data.</p></div><div class="heading-actions"><button class="btn btn-secondary" data-action="new-metric">＋ Add daily metrics</button><button class="btn btn-primary" data-action="new-campaign">＋ New campaign</button></div></div>
+          <div class="filter-bar"><div class="search-field"><span>⌕</span><input type="search" id="campaign-search" placeholder="Search campaigns or platforms"></div><select id="campaign-status-filter" class="filter-select"><option value="all">All statuses</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option></select><span class="record-count" id="campaign-record-count">0 campaigns</span></div>
+          <section class="panel"><div class="table-scroll"><table class="data-table"><thead><tr><th>CAMPAIGN</th><th>PLATFORM</th><th>BUDGET</th><th>SPEND</th><th>CTR</th><th>CPC</th><th>CPA</th><th>ROAS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody id="campaigns-table-body"></tbody></table></div></section>
+          <div class="section-footnote">Campaign values are based on manually entered metrics. Native ad-platform integrations are not connected yet.</div>
+        </section>
+
+        <section class="view" id="view-diagnostics">
+          <div class="page-heading heading-row"><div><div class="eyebrow">PERFORMANCE DETECTIVE</div><h1>Find the signal in <em>the noise.</em></h1><p class="page-description">Rule-based diagnostics compare complete 7-day windows and explain what to inspect next.</p></div><button class="btn btn-secondary" id="refresh-signals">↻ Refresh signals</button></div>
+          <div class="diagnostic-intro"><span class="diagnostic-mark">⌁</span><div><b>Evidence first. Decisions stay yours.</b><p>Signals are generated only when minimum data thresholds are met. They are advisory, do not claim causation, and never change ad accounts automatically.</p></div></div>
+          <div class="signal-summary" id="signal-summary"></div>
+          <div id="diagnostics-list" class="diagnostics-list"><div class="empty-state"><span class="empty-symbol">⌁</span><h3>No diagnostic signals yet</h3><p>Add campaign data for recent complete 7-day windows and set realistic targets to unlock useful checks.</p><button class="btn btn-primary" data-view="campaigns">Go to campaigns ↗</button></div></div>
+        </section>
+
+        <section class="view" id="view-tasks">
+          <div class="page-heading heading-row"><div><div class="eyebrow">DAILY DECISION SYSTEM</div><h1>Make the next move <em>count.</em></h1><p class="page-description">Capture the action, give it an owner in your workflow, and record what happened.</p></div><button class="btn btn-primary" data-action="new-task">＋ New task</button></div>
+          <div class="task-filter-row"><div class="task-tabs" id="task-tabs"><button class="active" data-task-filter="open">Open</button><button data-task-filter="in_progress">In progress</button><button data-task-filter="done">Completed</button><button data-task-filter="all">All tasks</button></div><span class="record-count" id="task-record-count">0 tasks</span></div>
+          <div id="tasks-list" class="tasks-list"></div>
+        </section>
+
+        <section class="view" id="view-experiments">
+          <div class="page-heading heading-row"><div><div class="eyebrow">CREATIVE LEARNING ENGINE</div><h1>Turn tests into <em>knowledge.</em></h1><p class="page-description">Keep hypotheses, variants, primary metrics and learnings connected to a campaign.</p></div><button class="btn btn-primary" data-action="new-experiment">＋ Log an experiment</button></div>
+          <div class="experiment-stats" id="experiment-stats"></div>
+          <div id="experiments-list" class="experiment-grid"></div>
+        </section>
+
+        <section class="view" id="view-tracking">
+          <div class="page-heading"><div><div class="eyebrow">TRACKING TOOLKIT</div><h1>Clean links. <em>Clear attribution.</em></h1><p class="page-description">Build consistent UTM links and keep the tracking setup for each campaign documented.</p></div></div>
+          <div class="tracking-layout">
+            <section class="panel tracking-builder"><div class="panel-heading"><div><div class="eyebrow">UTM BUILDER</div><h2>Build a campaign URL</h2><p>Parameters are URL-encoded automatically.</p></div><span class="tool-icon">↗</span></div>
+              <form id="utm-form" class="form-stack">
+                <label class="field">Landing page URL<input id="utm-url" type="url" placeholder="https://example.com/landing-page" required></label>
+                <div class="form-two-col"><label class="field">Source <span class="required">*</span><input id="utm-source" required placeholder="facebook"></label><label class="field">Medium <span class="required">*</span><input id="utm-medium" required placeholder="paid_social"></label></div>
+                <label class="field">Campaign name <span class="required">*</span><input id="utm-campaign" required placeholder="ramadan_launch_2026"></label>
+                <div class="form-two-col"><label class="field">Term <span class="optional">OPTIONAL</span><input id="utm-term" placeholder="audience_or_keyword"></label><label class="field">Content <span class="optional">OPTIONAL</span><input id="utm-content" placeholder="video_hook_a"></label></div>
+                <label class="field">Link to a campaign <select id="utm-campaign-id"><option value="">No campaign selected</option></select></label>
+                <div class="utm-preview-wrap"><div class="preview-label">GENERATED URL</div><output id="utm-output" class="utm-output">Your UTM link will appear here.</output><div class="utm-actions"><button class="btn btn-secondary" id="copy-utm" type="button">Copy link</button><button class="btn btn-primary" type="submit">Save tracking link ↗</button></div></div>
+              </form>
+            </section>
+            <section class="panel saved-links-panel"><div class="panel-heading"><div><div class="eyebrow">YOUR LIBRARY</div><h2>Saved tracking links</h2><p>Reusable campaign URLs.</p></div></div><div id="saved-links-list" class="saved-links-list"></div></section>
+          </div>
+        </section>
+
+        <section class="view" id="view-history">
+          <div class="page-heading heading-row"><div><div class="eyebrow">OPTIMIZATION MEMORY</div><h1>Keep the why. <em>Measure the what.</em></h1><p class="page-description">A durable record of what changed, why it changed, and how the performance moved afterwards.</p></div><button class="btn btn-primary" data-action="new-history">＋ Log a change</button></div>
+          <div class="memory-callout"><span class="memory-icon">◷</span><div><b>Your account's optimization memory</b><p>Record a change before you forget the context. Add after-metrics later to assess the outcome without assuming the change alone caused it.</p></div></div>
+          <div id="history-list" class="history-list"></div>
+        </section>
+
+        <footer class="app-footer"><span><span class="footer-pulse"></span> ADPULSE PERFORMANCE OS</span><span>Built for marketers who optimize.</span><a href="https://github.com/sobujkhamarofficial-ctrl/sarver" target="_blank" rel="noreferrer">Project repository ↗</a></footer>
       </div>
-      <p class="catalog-note">পণ্যের চিত্রগুলো প্রাথমিক ডিজাইন-ইলাস্ট্রেশন। প্রকাশের আগে প্রতিটি পণ্যের আসল ছবি ও অনুমোদিত তথ্য যোগ করুন।</p>
-    </section>
+    </main>
+  </div>
 
-    <section class="about-section section-pad" id="about">
-      <div class="about-mark"><span>HF</span><i>✳</i></div>
-      <div class="about-copy"><span class="eyebrow">আমাদের সম্পর্কে</span><h2>ভালো পছন্দ শুরু হয়<br><em>বিশ্বাস ও যত্ন</em> থেকে।</h2><p>Halal Food একটি বাংলাদেশি ফুড ও গ্রোসারি ব্র্যান্ড। প্রতিদিনের প্রয়োজনীয় পণ্য সহজে খুঁজে পাওয়া এবং কেনাকাটার আগে প্রয়োজনীয় তথ্য জানা—এই অভিজ্ঞতাকে আরও সহজ করাই আমাদের লক্ষ্য।</p><a class="text-link" href="#contact">আমাদের সঙ্গে কথা বলুন <span aria-hidden="true">↗</span></a></div>
-      <div class="about-stamp"><span>MADE FOR</span><b>EVERYDAY<br>GOODNESS</b><span>HALAL FOOD</span></div>
-    </section>
-
-    <section class="contact-section section-pad" id="contact">
-      <div class="contact-copy"><span class="eyebrow">যোগাযোগ</span><h2>আপনার পছন্দের পণ্য<br><em>সম্পর্কে জানতে চান?</em></h2><p>পণ্যের দাম, স্টক, ডেলিভারি বা অর্ডার সম্পর্কে জানতে যোগাযোগের তথ্য ব্যবহার করুন। সাইট প্রকাশের আগে নমুনা ইমেইলটি আপনার আসল যোগাযোগের তথ্য দিয়ে বদলে নিন।</p></div>
-      <div class="contact-panel"><span class="contact-label">GET IN TOUCH</span><div class="contact-row"><span class="contact-icon">✉</span><div><small>ইমেইল</small><a href="mailto:hello@example.com">hello@example.com</a></div><span class="placeholder-pill">পরিবর্তন করুন</span></div><div class="contact-row"><span class="contact-icon">⌖</span><div><small>অবস্থান</small><b>বাংলাদেশ</b><span class="contact-muted">আপনার ঠিকানা যোগ করুন</span></div></div><a class="button button-light" href="mailto:hello@example.com?subject=Halal%20Food%20Product%20Inquiry">ইমেইল করুন <span aria-hidden="true">↗</span></a></div>
-    </section>
-  </main>
-
-  <footer class="site-footer"><a class="footer-brand" href="#home">Halal <b>Food</b></a><span>ভালো পছন্দ, প্রতিদিন।</span><span class="copyright">© <span id="year"></span> Halal Food</span></footer>
-  <dialog class="product-dialog" aria-labelledby="dialog-title"><button class="dialog-close" aria-label="বন্ধ করুন">×</button><span class="eyebrow">পণ্যের তথ্য</span><h2 id="dialog-title">Product</h2><p>এই পণ্যটির দাম, প্রাপ্যতা এবং অর্ডারের তথ্য জানতে Halal Food-এর সঙ্গে যোগাযোগ করুন।</p><a class="button button-primary dialog-contact" href="#contact">যোগাযোগের তথ্য দেখুন ↗</a></dialog>
+  <dialog id="app-dialog" class="app-dialog"><div class="dialog-heading"><div><span class="eyebrow" id="dialog-eyebrow">WORKSPACE ACTION</span><h2 id="dialog-title">Create item</h2></div><button class="dialog-close" type="button" aria-label="Close dialog">×</button></div><div id="dialog-content"></div></dialog>
 </body>
 </html>
