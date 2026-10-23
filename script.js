@@ -216,6 +216,7 @@
     $('#auth-toggle').classList.toggle('hidden', reset || updatePassword);
     $('#forgot-password').classList.toggle('hidden', signup || reset || updatePassword);
     $('#auth-toggle').textContent = signup ? 'Already have an account?' : 'Create an account';
+    $('#resend-confirmation').classList.toggle('hidden', reset || updatePassword);
     $('#auth-password').required = !reset;
     $('#auth-password').autocomplete = signup || updatePassword ? 'new-password' : 'current-password';
     $('#auth-password').placeholder = signup || updatePassword ? 'At least 8 characters' : 'Your password';
