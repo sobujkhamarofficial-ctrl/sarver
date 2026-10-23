@@ -39,12 +39,11 @@
         <h2 id="auth-title">Welcome back.</h2>
         <p class="auth-subtitle" id="auth-subtitle">Sign in to continue to your performance workspace.</p>
         <form id="auth-form" class="form-stack">
-          <label id="name-field" class="field hidden">Full name<input id="auth-name" type="text" autocomplete="name" placeholder="Your name"></label>
           <label class="field">Owner email <small>Fixed admin account</small><input id="auth-email" type="email" autocomplete="username" value="sobujkhamar.official@gmail.com" readonly required></label>
           <label class="field">Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></label>
           <button id="auth-submit" class="btn btn-primary btn-wide" type="submit">Sign in <span aria-hidden="true">↗</span></button>
         </form>
-        <div class="auth-tools"><button type="button" class="text-button" id="forgot-password">Forgot password?</button><span class="auth-separator"></span><button type="button" class="text-button" id="auth-toggle">Create an account</button></div><div class="auth-tools auth-tools-secondary"><button type="button" class="text-button hidden" id="resend-confirmation">Resend confirmation email</button></div>
+        <div class="auth-tools"><button type="button" class="text-button" id="forgot-password">Forgot password?</button></div><div class="auth-tools auth-tools-secondary"><button type="button" class="text-button hidden" id="resend-confirmation">Resend confirmation email</button></div>
         <div id="auth-message" class="inline-message" role="status"></div>
         <div class="auth-trust"><span class="lock-mark">⌑</span><span>Your data is private to your signed-in account.</span></div>
       </div>
