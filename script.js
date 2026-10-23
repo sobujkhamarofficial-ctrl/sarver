@@ -2,6 +2,7 @@
   'use strict';
 
   const OWNER_EMAIL = 'sobujkhamar.official@gmail.com';
+  const TEMPORARY_PREVIEW_MODE = true; // Temporary UI-only access; keep database RLS enabled.
   const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
@@ -13,6 +14,7 @@
   const $$ = (selector, root) => Array.from((root || document).querySelectorAll(selector));
   const state = {
     user: null,
+    previewMode: false,
     view: 'overview',
     authMode: 'signin',
     campaigns: [],
@@ -323,6 +325,10 @@
   }
 
   async function loadData() {
+    if (state.previewMode) {
+      $('#data-status-text').textContent = 'Temporary preview · saving disabled';
+      return;
+    }
     if (!sb || !state.user || state.loading) return;
     state.loading = true;
     $('#data-status-text').textContent = 'Syncing workspace…';
@@ -903,6 +909,10 @@
 
   async function submitUtm(event) {
     event.preventDefault();
+    if (state.previewMode) {
+      toast('Temporary preview mode: tracking links cannot be saved until admin login is restored.', 'info');
+      return;
+    }
     const values = currentUtmValues();
     if (!values.destination_url || !values.utm_source || !values.utm_medium || !values.utm_campaign) {
       toast('Fill in the URL, source, medium and campaign name first.', 'error');
@@ -938,6 +948,10 @@
   }
 
   async function updateTaskStatus(id, status) {
+    if (state.previewMode) {
+      toast('Temporary preview mode: task changes are not saved.', 'info');
+      return;
+    }
     const payload = { status };
     if (status === 'done' || status === 'dismissed') payload.resolved_at = new Date().toISOString();
     else payload.resolved_at = null;
@@ -948,6 +962,10 @@
   }
 
   async function advanceExperiment(id, status) {
+    if (state.previewMode) {
+      toast('Temporary preview mode: experiment changes are not saved.', 'info');
+      return;
+    }
     const next = status === 'planned' ? 'running' : status === 'running' ? 'completed' : null;
     if (!next) { toast('This experiment is already marked as ' + status + '.', 'info'); return; }
     const patch = { status: next };
@@ -976,6 +994,10 @@
 
   function handleAction(button) {
     const action = button.dataset.action;
+    if (state.previewMode && action !== 'copy-link') {
+      toast('Temporary preview mode is active. Saving and server changes are disabled until admin login is restored.', 'info');
+      return;
+    }
     const id = button.dataset.id;
     if (action === 'new-campaign') openCampaignModal();
     if (action === 'new-metric') openMetricModal(id || null);
@@ -1070,6 +1092,24 @@
   }
 
   async function boot() {
+    if (TEMPORARY_PREVIEW_MODE) {
+      bindEvents();
+      state.previewMode = true;
+      state.user = null;
+      $('#auth-screen').classList.add('hidden');
+      $('#app-shell').classList.remove('hidden');
+      $('#data-status-text').textContent = 'Temporary preview · saving disabled';
+      $('#data-status-text').parentElement.style.opacity = '1';
+      $('#profile-name').textContent = 'Temporary Preview';
+      $('#profile-email').textContent = 'Database access protected';
+      $('#profile-avatar').textContent = 'P';
+      $('#topbar-avatar').textContent = 'P';
+      $('#signout-button').classList.add('hidden');
+      renderAll();
+      toast('Preview access is on. The interface is open, but private server data and save actions remain protected.', 'info');
+      return;
+    }
+
     if (!sb) {
       $('#auth-screen').classList.remove('hidden');
       setMessage($('#auth-message'), 'Could not initialize the Supabase client. Check network access and refresh.', 'error');
