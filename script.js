@@ -1,6 +1,7 @@
 (() => {
   'use strict';
 
+  const TEMPORARY_PREVIEW_MODE = true; // Dashboard-only preview; keep all Supabase RLS policies enabled.
   const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
@@ -12,6 +13,7 @@
   const $$ = (selector, root) => Array.from((root || document).querySelectorAll(selector));
   const state = {
     user: null,
+    previewMode: false,
     view: 'overview',
     authMode: 'signin',
     campaigns: [],
@@ -311,6 +313,10 @@
   }
 
   async function loadData() {
+    if (state.previewMode) {
+      $('#data-status-text').textContent = 'Dashboard preview · saving and private data paused';
+      return;
+    }
     if (!sb || !state.user || state.loading) return;
     state.loading = true;
     $('#data-status-text').textContent = 'Syncing workspace…';
@@ -472,6 +478,7 @@
   }
 
   async function exportMetricsCsv() {
+    if (state.previewMode) { toast('Dashboard preview: sign-in must be restored before exporting account data.', 'info'); return; }
     if (!sb || !state.user) { toast('Sign in before exporting campaign metrics.', 'error'); return; }
     try {
       const result = await sb.from('daily_metrics')
@@ -500,6 +507,7 @@
     const file = event.target.files && event.target.files[0];
     event.target.value = '';
     if (!file) return;
+    if (state.previewMode) { toast('Dashboard preview: sign-in must be restored before importing account data.', 'info'); return; }
     if (!state.user || !sb) { toast('Sign in before importing campaign metrics.', 'error'); return; }
     if (!state.campaigns.length) { toast('Create at least one campaign before importing metrics.', 'info'); return; }
     if (file.size > 5 * 1024 * 1024) { toast('CSV files must be 5 MB or smaller.', 'error'); return; }
@@ -1155,6 +1163,7 @@
 
   async function submitUtm(event) {
     event.preventDefault();
+    if (state.previewMode) { toast('Dashboard preview: saving tracking links is paused until sign-in is restored.', 'info'); return; }
     const values = currentUtmValues();
     if (!values.destination_url || !values.utm_source || !values.utm_medium || !values.utm_campaign) {
       toast('Fill in the URL, source, medium and campaign name first.', 'error');
@@ -1190,6 +1199,7 @@
   }
 
   async function updateTaskStatus(id, status) {
+    if (state.previewMode) { toast('Dashboard preview: task changes are paused until sign-in is restored.', 'info'); return; }
     const payload = { status };
     if (status === 'done' || status === 'dismissed') payload.resolved_at = new Date().toISOString();
     else payload.resolved_at = null;
@@ -1200,6 +1210,7 @@
   }
 
   async function advanceExperiment(id, status) {
+    if (state.previewMode) { toast('Dashboard preview: experiment changes are paused until sign-in is restored.', 'info'); return; }
     const next = status === 'planned' ? 'running' : status === 'running' ? 'completed' : null;
     if (!next) { toast('This experiment is already marked as ' + status + '.', 'info'); return; }
     const patch = { status: next };
@@ -1228,6 +1239,10 @@
 
   function handleAction(button) {
     const action = button.dataset.action;
+    if (state.previewMode && !['copy-link', 'download-metrics-template'].includes(action)) {
+      toast('Dashboard preview is open. Account data and save actions stay protected until sign-in is restored.', 'info');
+      return;
+    }
     const id = button.dataset.id;
     if (action === 'new-campaign') openCampaignModal();
     if (action === 'download-metrics-template') downloadMetricsTemplate();
@@ -1271,8 +1286,9 @@
       }
     });
     $('#refresh-button').addEventListener('click', loadData);
-    $('#refresh-signals').addEventListener('click', async () => { await loadData(); toast('Diagnostics refreshed.', 'success'); });
+    $('#refresh-signals').addEventListener('click', async () => { await loadData(); if (!state.previewMode) toast('Diagnostics refreshed.', 'success'); });
     $('#signout-button').addEventListener('click', async () => {
+      if (state.previewMode) { toast('Preview mode has no signed-in session.', 'info'); return; }
       const result = await sb.auth.signOut();
       if (result.error) toast(errorMessage(result.error), 'error');
       else toast('Signed out.', 'success');
@@ -1327,6 +1343,24 @@
   }
 
   async function boot() {
+    if (TEMPORARY_PREVIEW_MODE) {
+      bindEvents();
+      state.previewMode = true;
+      state.user = null;
+      $('#auth-screen').classList.add('hidden');
+      $('#app-shell').classList.remove('hidden');
+      $('#data-status-text').textContent = 'Dashboard preview · saving and private data paused';
+      $('#data-status-text').parentElement.style.opacity = '1';
+      $('#profile-name').textContent = 'Dashboard Preview';
+      $('#profile-email').textContent = 'Account data protected';
+      $('#profile-avatar').textContent = 'P';
+      $('#topbar-avatar').textContent = 'P';
+      $('#signout-button').classList.add('hidden');
+      renderAll();
+      toast('Dashboard opened directly in preview mode. Database records and save actions remain protected.', 'info');
+      return;
+    }
+
     if (!sb) {
       $('#auth-screen').classList.remove('hidden');
       $('#app-shell').classList.add('hidden');
