@@ -443,7 +443,9 @@
   }
 
   function csvCell(value) {
-    const textValue = String(value === null || value === undefined ? '' : value);
+    let textValue = String(value === null || value === undefined ? '' : value);
+    // Prevent spreadsheet formula injection when campaign names are user-controlled.
+    if (/^[\\t\\r ]*[=+\\-@]/.test(textValue)) textValue = "'" + textValue;
     return '"' + textValue.replace(/"/g, '""') + '"';
   }
 
