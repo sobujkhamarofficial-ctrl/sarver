@@ -236,7 +236,7 @@
   function handlePreviewLogin(event) {
     event.preventDefault();
     const email = $('#auth-email').value.trim().toLowerCase();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setMessage($('#auth-message'), 'Enter a valid email address.', 'error');
       return;
     }
@@ -251,7 +251,7 @@
     state.user = null;
     $('#auth-screen').classList.add('hidden');
     $('#app-shell').classList.remove('hidden');
-    const displayName = (email.split('@')[0] || 'Preview User').replace(/[._-]+/g, ' ').replace(/\\b\\w/g, letter => letter.toUpperCase());
+    const displayName = (email.split('@')[0] || 'Preview User').replace(/[._-]+/g, ' ').split(' ').map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : '').join(' ');
     $('#profile-name').textContent = displayName;
     $('#profile-email').textContent = email;
     $('#profile-avatar').textContent = initials(displayName);
