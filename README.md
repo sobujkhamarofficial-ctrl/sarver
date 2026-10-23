@@ -8,7 +8,7 @@ https://sobujkhamarofficial-ctrl.github.io/sarver/
 
 ## Current features
 
-- Supabase Auth sign-in, sign-up, password-reset flow
+- Owner-only Supabase Auth sign-in and password-reset flow (public account creation is not offered)
 - Campaign records and daily performance metrics
 - KPIs: spend, conversions, CTR, CPC, CPA and ROAS
 - Rules-based diagnostic signals comparing complete 7-day windows
