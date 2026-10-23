@@ -8,7 +8,8 @@ https://sobujkhamarofficial-ctrl.github.io/sarver/
 
 ## Current features
 
-- Owner-only Supabase Auth sign-in and password-reset flow (public account creation is not offered)
+- Supabase Auth sign-in, account creation and password-reset flow
+- User-scoped campaign data protected by Row Level Security
 - Campaign records and daily performance metrics
 - KPIs: spend, conversions, CTR, CPC, CPA and ROAS
 - Rules-based diagnostic signals comparing complete 7-day windows
@@ -52,9 +53,9 @@ Versioned SQL files are tracked under `supabase/migrations/`. The live schema an
 
 ## Single-owner login
 
-This deployment is locked to `sobujkhamar.official@gmail.com` at both the login UI and the Supabase Auth database trigger. The first login requires mailbox confirmation; use the confirmation message or the page's resend option. Use **Forgot password?** to set a password if the original signup password is not remembered.
+Each person can create an account and sign in with their own email and password. New accounts may need email confirmation depending on the Supabase Auth configuration.
 
 Set the Supabase Site URL and allowed redirect URL to:
 `https://sobujkhamarofficial-ctrl.github.io/sarver/`
 
-The app is a single-owner personal workspace, not a general user-registration service.
+Each authenticated account sees and edits its own workspace data under Row Level Security.
