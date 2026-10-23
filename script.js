@@ -201,26 +201,30 @@
   }
 
   function showAuthMode(mode) {
-    state.authMode = mode;
-    const signup = mode === 'signup';
-    const reset = mode === 'reset';
-    const updatePassword = mode === 'update_password';
-    $('#name-field').classList.toggle('hidden', !signup);
-    $('#auth-title').textContent = signup ? 'Set up your admin account.' : reset ? 'Reset your password.' : updatePassword ? 'Choose a new password.' : 'Welcome back.';
-    $('#auth-eyebrow').textContent = signup ? 'GET STARTED' : reset ? 'ACCOUNT RECOVERY' : updatePassword ? 'SECURE YOUR ACCOUNT' : 'YOUR WORKSPACE';
-    $('#auth-subtitle').textContent = signup
-      ? 'This private workspace only allows the fixed owner email shown below.'
-      : reset ? 'We will send a password reset link to the owner email.'
-      : updatePassword ? 'Choose a new password for your AdPulse account.'
-      : 'Sign in to continue to your performance workspace.';
-    $('#auth-submit').innerHTML = (signup ? 'Create account' : reset ? 'Send reset link' : updatePassword ? 'Update password' : 'Sign in') + ' <span aria-hidden="true">↗</span>';
-    $('#auth-toggle').classList.toggle('hidden', reset || updatePassword);
-    $('#forgot-password').classList.toggle('hidden', signup || reset || updatePassword);
-    $('#auth-toggle').textContent = signup ? 'Already have an account?' : 'Create an account';
+    const normalizedMode = mode === 'reset' || mode === 'update_password' ? mode : 'signin';
+    state.authMode = normalizedMode;
+    const reset = normalizedMode === 'reset';
+    const updatePassword = normalizedMode === 'update_password';
+
+    $('#auth-title').textContent = reset
+      ? 'Reset your password.'
+      : updatePassword ? 'Choose a new password.' : 'Welcome back.';
+    $('#auth-eyebrow').textContent = reset
+      ? 'ACCOUNT RECOVERY'
+      : updatePassword ? 'SECURE YOUR ACCOUNT' : 'YOUR WORKSPACE';
+    $('#auth-subtitle').textContent = reset
+      ? 'We will send a password reset link to the owner email.'
+      : updatePassword
+        ? 'Choose a new password for your AdPulse account.'
+        : 'Sign in to continue to your private performance workspace.';
+    $('#auth-submit').innerHTML = (reset
+      ? 'Send reset link'
+      : updatePassword ? 'Update password' : 'Sign in') + ' <span aria-hidden="true">↗</span>';
+    $('#forgot-password').classList.toggle('hidden', reset || updatePassword);
     $('#resend-confirmation').classList.toggle('hidden', reset || updatePassword);
     $('#auth-password').required = !reset;
-    $('#auth-password').autocomplete = signup || updatePassword ? 'new-password' : 'current-password';
-    $('#auth-password').placeholder = signup || updatePassword ? 'At least 8 characters' : 'Your password';
+    $('#auth-password').autocomplete = updatePassword ? 'new-password' : 'current-password';
+    $('#auth-password').placeholder = updatePassword ? 'At least 8 characters' : 'Your password';
     setMessage($('#auth-message'), '', '');
   }
 
@@ -233,27 +237,18 @@
       setMessage($('#auth-message'), 'This admin workspace is locked to ' + OWNER_EMAIL + '.', 'error');
       return;
     }
-    const name = $('#auth-name').value.trim();
+
     const button = $('#auth-submit');
     const prior = button.innerHTML;
     button.disabled = true;
-    button.textContent = state.authMode === 'signup' ? 'Creating account…' : state.authMode === 'reset' ? 'Sending email…' : state.authMode === 'update_password' ? 'Updating…' : 'Signing in…';
+    button.textContent = state.authMode === 'reset'
+      ? 'Sending email…'
+      : state.authMode === 'update_password' ? 'Updating…' : 'Signing in…';
     setMessage($('#auth-message'), '', '');
     try {
       let result;
       if (state.authMode === 'signin') {
         result = await sb.auth.signInWithPassword({ email, password });
-      } else if (state.authMode === 'signup') {
-        result = await sb.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: name || email.split('@')[0] }, emailRedirectTo: AUTH_REDIRECT_URL }
-        });
-        if (!result.error && result.data && !result.data.session) {
-          $('#resend-confirmation').classList.remove('hidden');
-          setMessage($('#auth-message'), 'Account request received. Open Gmail for ' + OWNER_EMAIL + ' and click the Supabase confirmation link before signing in. If you cannot find it, use “Resend confirmation email”.', 'info');
-          return;
-        }
       } else if (state.authMode === 'reset') {
         result = await sb.auth.resetPasswordForEmail(email, { redirectTo: AUTH_REDIRECT_URL });
         if (!result.error) {
@@ -267,10 +262,15 @@
           setMessage($('#auth-message'), 'Password updated successfully. Sign in with your new password.', 'info');
           return;
         }
+      } else {
+        throw new Error('Unsupported authentication action.');
       }
       if (result && result.error) throw result.error;
       if (result && result.data && result.data.session) await setSession(result.data.session);
     } catch (error) {
+      if (/Email not confirmed/i.test(String(error && error.message || error))) {
+        $('#resend-confirmation').classList.remove('hidden');
+      }
       setMessage($('#auth-message'), errorMessage(error), 'error');
     } finally {
       button.disabled = false;
@@ -995,7 +995,6 @@
 
   function bindEvents() {
     $('#auth-form').addEventListener('submit', handleAuthSubmit);
-    $('#auth-toggle').addEventListener('click', () => showAuthMode(state.authMode === 'signup' ? 'signin' : 'signup'));
     $('#forgot-password').addEventListener('click', () => showAuthMode('reset'));
     $('#resend-confirmation').addEventListener('click', async () => {
       const button = $('#resend-confirmation');
