@@ -351,8 +351,270 @@
     }
   }
 
+  function renderGettingStarted() {
+    const host = $('#setup-steps');
+    if (!host) return;
+    const campaignCount = state.campaigns.length;
+    const metricCount = state.metrics.length;
+    const targeted = new Set(state.targets.map(t => t.campaign_id));
+    const targetsComplete = campaignCount > 0 && state.campaigns.every(c => targeted.has(c.campaign_id));
+    const complete = [campaignCount > 0, metricCount > 0, targetsComplete].filter(Boolean).length;
+
+    $('#setup-progress').textContent = complete + ' of 3 complete';
+    $('#setup-description').textContent = campaignCount === 0
+      ? 'Start by recording a campaign, then add real results so the dashboard can calculate meaningful metrics.'
+      : metricCount === 0
+        ? 'Your campaigns are set up. Add daily results to unlock trends and evidence-based diagnostics.'
+        : targetsComplete
+          ? 'Your workspace has the basics. Review diagnostics, prioritize the next action, and keep logging results.'
+          : 'Add daily data and campaign goals. The app will calculate KPIs and surface checks when enough data is available.';
+
+    const steps = [
+      {
+        done: campaignCount > 0,
+        title: campaignCount > 0 ? campaignCount + ' campaign' + (campaignCount === 1 ? '' : 's') + ' set up' : 'Create your first campaign',
+        detail: campaignCount > 0 ? 'You can keep campaigns separated by platform and objective.' : 'Choose a name, platform, budget and start date.',
+        action: 'new-campaign',
+        label: campaignCount > 0 ? '＋ Add another' : 'Create campaign'
+      },
+      {
+        done: metricCount > 0,
+        title: metricCount > 0 ? 'Performance data recorded' : 'Add real performance data',
+        detail: metricCount > 0 ? metricCount + ' daily metric record' + (metricCount === 1 ? '' : 's') + ' are available in the recent 45-day workspace view.' : 'Enter metrics manually or upload the CSV template with reports you already have.',
+        action: campaignCount > 0 ? 'import-metrics' : 'new-campaign',
+        label: campaignCount > 0 ? (metricCount > 0 ? 'Import more data' : 'Import CSV') : 'Create campaign first'
+      },
+      {
+        done: targetsComplete,
+        title: targetsComplete ? 'Campaign goals configured' : 'Set targets and review signals',
+        detail: targetsComplete ? 'Review diagnostics and turn verified issues into an optimization task.' : 'Set a realistic CTR, CPC, CPA, ROAS or daily spend target for each campaign.',
+        action: targetsComplete ? 'view-diagnostics' : (campaignCount > 0 ? 'view-campaigns' : 'new-campaign'),
+        label: targetsComplete ? 'Review diagnostics' : (campaignCount > 0 ? 'Set targets' : 'Start with a campaign'),
+        view: targetsComplete ? 'diagnostics' : (campaignCount > 0 ? 'campaigns' : null)
+      }
+    ];
+
+    host.innerHTML = steps.map((step, index) =>
+      '<article class="setup-step ' + (step.done ? 'is-complete' : '') + '">' +
+        '<span class="setup-number">' + (step.done ? '✓' : String(index + 1)) + '</span>' +
+        '<div class="setup-copy"><b>' + esc(step.title) + '</b><p>' + esc(step.detail) + '</p></div>' +
+        (step.view ? '<button class="small-action" data-view="' + esc(step.view) + '">' + esc(step.label) + '</button>' :
+          '<button class="small-action" data-action="' + esc(step.action) + '">' + esc(step.label) + '</button>') +
+      '</article>'
+    ).join('');
+  }
+
+  function parseCsvRows(source) {
+    const textValue = String(source || '').replace(/^\uFEFF/, '');
+    const rows = [];
+    let row = [];
+    let value = '';
+    let quoted = false;
+    for (let i = 0; i < textValue.length; i++) {
+      const ch = textValue[i];
+      if (quoted) {
+        if (ch === '"') {
+          if (textValue[i + 1] === '"') { value += '"'; i++; }
+          else quoted = false;
+        } else {
+          value += ch;
+        }
+      } else if (ch === '"' && value.length === 0) {
+        quoted = true;
+      } else if (ch === ',') {
+        row.push(value); value = '';
+      } else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && textValue[i + 1] === '\n') i++;
+        row.push(value);
+        if (row.some(cell => String(cell).trim() !== '')) rows.push(row);
+        row = []; value = '';
+      } else {
+        value += ch;
+      }
+    }
+    if (quoted) throw new Error('CSV contains an opening quote without a matching closing quote.');
+    row.push(value);
+    if (row.some(cell => String(cell).trim() !== '')) rows.push(row);
+    return rows;
+  }
+
+  function normalizeCsvHeader(value) {
+    return String(value || '').toLowerCase().trim().replace(/^\uFEFF/, '').replace(/[^a-z0-9]/g, '');
+  }
+
+  function csvCell(value) {
+    const textValue = String(value === null || value === undefined ? '' : value);
+    return '"' + textValue.replace(/"/g, '""') + '"';
+  }
+
+  function downloadCsv(filename, rows) {
+    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadMetricsTemplate() {
+    const today = dateOnly(new Date());
+    downloadCsv('adpulse-metrics-template.csv', [
+      ['campaign_name','metric_date','spend','impressions','clicks','conversions','revenue'],
+      ['Example Campaign (replace with exact existing name)',today,'1000','10000','200','5','4500']
+    ]);
+    toast('CSV template downloaded. Replace the example row with your campaign name and real figures, or delete that row.', 'info');
+  }
+
+  async function exportMetricsCsv() {
+    if (!sb || !state.user) { toast('Sign in before exporting campaign metrics.', 'error'); return; }
+    try {
+      const result = await sb.from('daily_metrics')
+        .select('campaign_id,metric_date,spend,impressions,clicks,conversions,revenue')
+        .order('metric_date', { ascending: true });
+      if (result.error) throw result.error;
+      const campaignNames = new Map(state.campaigns.map(c => [c.campaign_id, c.name]));
+      const rows = [['campaign_name','metric_date','spend','impressions','clicks','conversions','revenue']];
+      (result.data || []).forEach(metric => rows.push([
+        campaignNames.get(metric.campaign_id) || metric.campaign_id,
+        metric.metric_date,
+        metric.spend,
+        metric.impressions,
+        metric.clicks,
+        metric.conversions,
+        metric.revenue
+      ]));
+      downloadCsv('adpulse-metrics-' + dateOnly(new Date()) + '.csv', rows);
+      toast('Exported ' + (result.data || []).length + ' daily metric record(s).', 'success');
+    } catch (error) {
+      toast(errorMessage(error), 'error');
+    }
+  }
+
+  async function handleMetricsCsvFileChange(event) {
+    const file = event.target.files && event.target.files[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!state.user || !sb) { toast('Sign in before importing campaign metrics.', 'error'); return; }
+    if (!state.campaigns.length) { toast('Create at least one campaign before importing metrics.', 'info'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast('CSV files must be 5 MB or smaller.', 'error'); return; }
+
+    let rows;
+    try { rows = parseCsvRows(await file.text()); }
+    catch (error) { toast(errorMessage(error), 'error'); return; }
+    if (rows.length < 2) { toast('The CSV needs a header row and at least one data row.', 'error'); return; }
+    if (rows.length > 5001) { toast('This import is limited to 5,000 data rows per file.', 'error'); return; }
+
+    const header = rows.shift().map(normalizeCsvHeader);
+    const aliases = {
+      campaign_name: ['campaignname','campaign'],
+      metric_date: ['metricdate','date','day','reportdate','reportingdate'],
+      spend: ['spend','cost','amountspent'],
+      impressions: ['impressions','impression'],
+      clicks: ['clicks','click','linkclicks','outboundclicks'],
+      conversions: ['conversions','conversion','results','purchases','leads'],
+      revenue: ['revenue','conversionvalue','purchaseconversionvalue','websitepurchaseconversionvalue']
+    };
+    const columnIndex = {};
+    Object.keys(aliases).forEach(key => {
+      columnIndex[key] = header.findIndex(name => aliases[key].includes(name));
+    });
+    const missing = Object.keys(aliases).filter(key => columnIndex[key] < 0);
+    if (missing.length) {
+      toast('Missing CSV columns: ' + missing.join(', ') + '. Download the AdPulse CSV template for the required format.', 'error');
+      return;
+    }
+
+    const nameMap = new Map();
+    state.campaigns.forEach(c => {
+      const key = String(c.name || '').trim().toLowerCase();
+      if (!nameMap.has(key)) nameMap.set(key, []);
+      nameMap.get(key).push(c);
+    });
+    const parsedRecords = [];
+    const errors = [];
+    const seen = new Set();
+    const today = dateOnly(new Date());
+
+    rows.forEach((cells, index) => {
+      const line = index + 2;
+      if (!cells.some(cell => String(cell).trim() !== '')) return;
+      const get = key => String(cells[columnIndex[key]] === undefined ? '' : cells[columnIndex[key]]).trim();
+      const campaignName = get('campaign_name');
+      const matches = nameMap.get(campaignName.toLowerCase()) || [];
+      if (!campaignName || matches.length !== 1) {
+        errors.push({ line, message: matches.length > 1 ? 'Campaign name is not unique: ' + campaignName : 'Campaign not found. Create it first and use its exact name: ' + (campaignName || '(blank)') });
+        return;
+      }
+      const date = get('metric_date');
+      const dateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date + 'T00:00:00Z')) && new Date(date + 'T00:00:00Z').toISOString().slice(0,10) === date && date <= today;
+      if (!dateIsValid) {
+        errors.push({ line, message: 'Date must be a valid YYYY-MM-DD date and cannot be in the future.' });
+        return;
+      }
+      const values = {};
+      let numericError = '';
+      ['spend','impressions','clicks','conversions','revenue'].forEach(key => {
+        const raw = get(key).replace(/[,$€£৳\s]/g, '');
+        const n = raw === '' ? NaN : Number(raw);
+        if (!Number.isFinite(n) || n < 0) numericError = key + ' must be a zero-or-positive number.';
+        values[key] = n;
+      });
+      if (numericError) { errors.push({ line, message: numericError }); return; }
+      for (const key of ['impressions','clicks','conversions']) {
+        if (!Number.isInteger(values[key])) {
+          errors.push({ line, message: key + ' must be a whole number.' });
+          return;
+        }
+      }
+      if (values.clicks > values.impressions) {
+        errors.push({ line, message: 'Clicks cannot exceed impressions. Check both values.' });
+        return;
+      }
+      const campaign = matches[0];
+      const identity = campaign.campaign_id + '|' + date;
+      if (seen.has(identity)) {
+        errors.push({ line, message: 'Duplicate campaign/date in this file. Keep one row per campaign per date.' });
+        return;
+      }
+      seen.add(identity);
+      parsedRecords.push({
+        user_id: state.user.id,
+        campaign_id: campaign.campaign_id,
+        metric_date: date,
+        spend: values.spend,
+        impressions: values.impressions,
+        clicks: values.clicks,
+        conversions: values.conversions,
+        revenue: values.revenue
+      });
+    });
+
+    const errorPreview = errors.slice(0, 8).map(item => '<li>Row ' + item.line + ': ' + esc(item.message) + '</li>').join('');
+    const canImport = errors.length === 0 && parsedRecords.length > 0;
+    const content = '<form class="dialog-form"><p class="dialog-note">File: ' + esc(file.name) + '. One row represents one campaign for one day. Existing matching dates will be updated, not duplicated. Imported values are recorded as supplied and do not sync back to an ad platform.</p>' +
+      '<div class="csv-import-summary"><div><span>VALID ROWS</span><b>' + parsedRecords.length + '</b></div><div><span>ISSUES</span><b>' + errors.length + '</b></div></div>' +
+      (errors.length ? '<div class="csv-import-errors"><b>Fix these rows and upload again</b><ul>' + errorPreview + (errors.length > 8 ? '<li>…and ' + (errors.length - 8) + ' more issue(s).</li>' : '') + '</ul></div>' : '<p class="dialog-note">The file passed validation. Importing will upsert metrics using the unique campaign/date key.</p>') +
+      '<div class="dialog-error"></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-dialog-cancel>Cancel</button><button type="submit" class="btn btn-primary" ' + (canImport ? '' : 'disabled') + '>Import ' + parsedRecords.length + ' row(s) ↗</button></div></form>';
+    showDialog('Import campaign metrics', content, async () => {
+      let completed = 0;
+      for (let i = 0; i < parsedRecords.length; i += 250) {
+        const batch = parsedRecords.slice(i, i + 250);
+        const result = await sb.from('daily_metrics').upsert(batch, { onConflict: 'campaign_id,metric_date' });
+        if (result.error) throw new Error('Import stopped after ' + completed + ' row(s): ' + errorMessage(result.error) + '. You can upload the same file again safely because matching dates are updated.');
+        completed += batch.length;
+      }
+      toast('Imported ' + completed + ' daily metric record(s).', 'success');
+      await loadData();
+    }, 'DATA IMPORT');
+  }
+
   function renderAll() {
     renderOverview();
+    renderGettingStarted();
     renderCampaigns();
     renderDiagnostics();
     renderTasks();
@@ -966,6 +1228,9 @@
     const action = button.dataset.action;
     const id = button.dataset.id;
     if (action === 'new-campaign') openCampaignModal();
+    if (action === 'download-metrics-template') downloadMetricsTemplate();
+    if (action === 'import-metrics') $('#metrics-csv-input').click();
+    if (action === 'export-metrics') exportMetricsCsv();
     if (action === 'new-metric') openMetricModal(id || null);
     if (action === 'targets') openTargetsModal(id);
     if (action === 'new-task') openTaskModal();
@@ -1018,6 +1283,7 @@
       renderCampaigns();
     });
     $('#campaign-search').addEventListener('input', renderCampaigns);
+    $('#metrics-csv-input').addEventListener('change', handleMetricsCsvFileChange);
     $('#campaign-status-filter').addEventListener('change', renderCampaigns);
     $('#utm-form').addEventListener('submit', submitUtm);
     ['#utm-url','#utm-source','#utm-medium','#utm-campaign','#utm-term','#utm-content'].forEach(selector => $(selector).addEventListener('input', makePreviewUrl));
