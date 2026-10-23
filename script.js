@@ -1047,6 +1047,7 @@
         showAuthMode('update_password');
         $('#auth-screen').classList.remove('hidden');
         $('#app-shell').classList.add('hidden');
+        return;
       }
       window.setTimeout(() => setSession(session), 0);
     });
