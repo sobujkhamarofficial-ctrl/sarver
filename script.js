@@ -706,7 +706,7 @@
 
   function openMetricModal(selectedCampaign) {
     if (!state.campaigns.length) { toast('Create a campaign before adding daily metrics.', 'info'); return; }
-    const content = '<form class="dialog-form"><p class="dialog-note">Use the campaign's reported daily figures. If the same campaign/date already exists, the record will be updated.</p>' +
+    const content = '<form class="dialog-form"><p class="dialog-note">Use the campaign&#39;s reported daily figures. If the same campaign/date already exists, the record will be updated.</p>' +
       '<label class="field">Campaign<select name="campaign_id" required>' + campaignOptions(selectedCampaign) + '</select></label>' +
       '<div class="form-two-col"><label class="field">Metric date<input name="metric_date" type="date" value="' + dateOnly(new Date()) + '" required></label><label class="field">Spend (BDT)<input name="spend" type="number" min="0" step="0.01" value="0" required></label></div>' +
       '<div class="form-two-col"><label class="field">Impressions<input name="impressions" type="number" min="0" step="1" value="0" required></label><label class="field">Clicks<input name="clicks" type="number" min="0" step="1" value="0" required></label></div>' +
