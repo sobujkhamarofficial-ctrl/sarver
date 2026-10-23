@@ -17,7 +17,7 @@
 <body>
   <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
-  <section id="auth-screen" class="auth-screen hidden">
+  <section id="auth-screen" class="auth-screen">
     <div class="auth-left">
       <a class="auth-brand" href="#" aria-label="AdPulse home"><span class="brand-symbol"><i></i><i></i><i></i></span><span>adpulse<span class="brand-dot">.</span></span></a>
       <div class="auth-pitch">
@@ -39,18 +39,19 @@
         <h2 id="auth-title">Welcome back.</h2>
         <p class="auth-subtitle" id="auth-subtitle">Sign in to continue to your performance workspace.</p>
         <form id="auth-form" class="form-stack">
-          <label class="field">Owner email <small>Fixed admin account</small><input id="auth-email" type="email" autocomplete="username" value="sobujkhamar.official@gmail.com" readonly required></label>
-          <label class="field">Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></label>
+          <label id="name-field" class="field hidden">Full name<input id="auth-name" type="text" autocomplete="name" placeholder="Your name"></label>
+          <label id="email-field" class="field">Email address <small>Use your account email</small><input id="auth-email" type="email" autocomplete="username" placeholder="you@example.com" required></label>
+          <label id="password-field" class="field">Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></label>
           <button id="auth-submit" class="btn btn-primary btn-wide" type="submit">Sign in <span aria-hidden="true">↗</span></button>
         </form>
-        <div class="auth-tools"><button type="button" class="text-button" id="forgot-password">Forgot password?</button></div><div class="auth-tools auth-tools-secondary"><button type="button" class="text-button hidden" id="resend-confirmation">Resend confirmation email</button></div>
+        <div class="auth-tools"><button type="button" class="text-button" id="forgot-password">Forgot password?</button><span class="auth-separator"></span><button type="button" class="text-button" id="auth-toggle">Create an account</button></div><div class="auth-tools auth-tools-secondary"><button type="button" class="text-button hidden" id="resend-confirmation">Resend confirmation email</button></div>
         <div id="auth-message" class="inline-message" role="status"></div>
         <div class="auth-trust"><span class="lock-mark">⌑</span><span>Your data is private to your signed-in account.</span></div>
       </div>
     </div>
   </section>
 
-  <div id="app-shell" class="app-shell">
+  <div id="app-shell" class="app-shell hidden">
     <aside class="sidebar" id="sidebar">
       <a class="sidebar-brand" href="#" aria-label="AdPulse dashboard"><span class="brand-symbol"><i></i><i></i><i></i></span><span class="brand-word">adpulse<span class="brand-dot">.</span><small>PERFORMANCE OS</small></span></a>
       <div class="workspace-switcher"><div class="workspace-avatar">AP</div><div class="workspace-text"><b>My workspace</b><small>Performance marketing</small></div><span class="switcher-chevron">⌄</span></div>
