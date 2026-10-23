@@ -1,8 +1,6 @@
 (() => {
   'use strict';
 
-  const OWNER_EMAIL = 'sobujkhamar.official@gmail.com';
-  const TEMPORARY_PREVIEW_MODE = true; // Temporary UI-only access; keep database RLS enabled.
   const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
@@ -14,7 +12,6 @@
   const $$ = (selector, root) => Array.from((root || document).querySelectorAll(selector));
   const state = {
     user: null,
-    previewMode: false,
     view: 'overview',
     authMode: 'signin',
     campaigns: [],
@@ -90,7 +87,7 @@
     if (!error) return 'Something went wrong. Please try again.';
     const message = String(error.message || error);
     if (/Invalid login credentials/i.test(message)) return 'Password may be incorrect. Use “Forgot password?” to set a new one.';
-    if (/Email not confirmed/i.test(message)) return 'Your email is not confirmed yet. Use “Resend confirmation email”, open Gmail, and click the confirmation link before signing in.';
+    if (/Email not confirmed/i.test(message)) return 'Your email is not confirmed yet. Check your inbox for the confirmation link before signing in, or resend the confirmation email.';
     if (/User already registered/i.test(message)) return 'An account with this email already exists. Try signing in.';
     if (/Password should be at least/i.test(message)) return 'Choose a stronger password with at least 8 characters.';
     if (/row-level security|permission denied|not allowed/i.test(message)) return 'The request was blocked by database permissions. Confirm you are signed in and try again.';
@@ -203,30 +200,28 @@
   }
 
   function showAuthMode(mode) {
-    const normalizedMode = mode === 'reset' || mode === 'update_password' ? mode : 'signin';
-    state.authMode = normalizedMode;
-    const reset = normalizedMode === 'reset';
-    const updatePassword = normalizedMode === 'update_password';
-
-    $('#auth-title').textContent = reset
-      ? 'Reset your password.'
-      : updatePassword ? 'Choose a new password.' : 'Welcome back.';
-    $('#auth-eyebrow').textContent = reset
-      ? 'ACCOUNT RECOVERY'
-      : updatePassword ? 'SECURE YOUR ACCOUNT' : 'YOUR WORKSPACE';
-    $('#auth-subtitle').textContent = reset
-      ? 'We will send a password reset link to the owner email.'
-      : updatePassword
-        ? 'Choose a new password for your AdPulse account.'
-        : 'Sign in to continue to your private performance workspace.';
-    $('#auth-submit').innerHTML = (reset
-      ? 'Send reset link'
-      : updatePassword ? 'Update password' : 'Sign in') + ' <span aria-hidden="true">↗</span>';
-    $('#forgot-password').classList.toggle('hidden', reset || updatePassword);
+    state.authMode = ['signup','reset','update_password'].includes(mode) ? mode : 'signin';
+    const signup = state.authMode === 'signup';
+    const reset = state.authMode === 'reset';
+    const updatePassword = state.authMode === 'update_password';
+    $('#name-field').classList.toggle('hidden', !signup);
+    $('#name-field').querySelector('input').required = signup;
+    $('#password-field').classList.toggle('hidden', reset);
+    $('#auth-title').textContent = signup ? 'Create your account.' : reset ? 'Reset your password.' : updatePassword ? 'Choose a new password.' : 'Welcome back.';
+    $('#auth-eyebrow').textContent = signup ? 'GET STARTED' : reset ? 'ACCOUNT RECOVERY' : updatePassword ? 'SECURE YOUR ACCOUNT' : 'YOUR WORKSPACE';
+    $('#auth-subtitle').textContent = signup
+      ? 'Create an account with your email address and password to open your own workspace.'
+      : reset ? 'We will send a password reset link to your email address.'
+      : updatePassword ? 'Choose a new password for your account.'
+      : 'Sign in to continue to your performance workspace.';
+    $('#auth-submit').innerHTML = (signup ? 'Create account' : reset ? 'Send reset link' : updatePassword ? 'Update password' : 'Sign in') + ' <span aria-hidden="true">↗</span>';
+    $('#auth-toggle').classList.toggle('hidden', reset || updatePassword);
+    $('#auth-toggle').textContent = signup ? 'Already have an account?' : 'Create an account';
+    $('#forgot-password').classList.toggle('hidden', signup || reset || updatePassword);
     $('#resend-confirmation').classList.toggle('hidden', reset || updatePassword);
     $('#auth-password').required = !reset;
-    $('#auth-password').autocomplete = updatePassword ? 'new-password' : 'current-password';
-    $('#auth-password').placeholder = updatePassword ? 'At least 8 characters' : 'Your password';
+    $('#auth-password').autocomplete = signup || updatePassword ? 'new-password' : 'current-password';
+    $('#auth-password').placeholder = signup || updatePassword ? 'At least 8 characters' : 'Your password';
     setMessage($('#auth-message'), '', '');
   }
 
@@ -235,44 +230,43 @@
     if (!sb) return setMessage($('#auth-message'), 'Supabase client did not load. Refresh the page and try again.', 'error');
     const email = $('#auth-email').value.trim().toLowerCase();
     const password = $('#auth-password').value;
-    if (email !== OWNER_EMAIL) {
-      setMessage($('#auth-message'), 'This admin workspace is locked to ' + OWNER_EMAIL + '.', 'error');
-      return;
-    }
+    const name = $('#auth-name').value.trim();
+    if (!email) { setMessage($('#auth-message'), 'Enter your email address.', 'error'); return; }
+    if (state.authMode !== 'reset' && password.length < 8) { setMessage($('#auth-message'), 'Use a password with at least 8 characters.', 'error'); return; }
+    if (state.authMode === 'signup' && !name) { setMessage($('#auth-message'), 'Enter your name to create an account.', 'error'); return; }
 
     const button = $('#auth-submit');
     const prior = button.innerHTML;
     button.disabled = true;
-    button.textContent = state.authMode === 'reset'
-      ? 'Sending email…'
-      : state.authMode === 'update_password' ? 'Updating…' : 'Signing in…';
+    button.textContent = state.authMode === 'signup' ? 'Creating account…' : state.authMode === 'reset' ? 'Sending email…' : state.authMode === 'update_password' ? 'Updating…' : 'Signing in…';
     setMessage($('#auth-message'), '', '');
     try {
       let result;
       if (state.authMode === 'signin') {
         result = await sb.auth.signInWithPassword({ email, password });
+      } else if (state.authMode === 'signup') {
+        result = await sb.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: AUTH_REDIRECT_URL } });
+        if (result.error) throw result.error;
+        if (result.data && result.data.session) {
+          await setSession(result.data.session);
+          return;
+        }
+        $('#resend-confirmation').classList.remove('hidden');
+        setMessage($('#auth-message'), 'Account created. Check your email and open the confirmation link before signing in. If it does not arrive, use “Resend confirmation email”.', 'info');
+        return;
       } else if (state.authMode === 'reset') {
         result = await sb.auth.resetPasswordForEmail(email, { redirectTo: AUTH_REDIRECT_URL });
-        if (!result.error) {
-          setMessage($('#auth-message'), 'If this email belongs to an account, a password-reset link has been sent.', 'info');
-          return;
-        }
+        if (!result.error) { setMessage($('#auth-message'), 'If this email belongs to an account, a password-reset link has been sent.', 'info'); return; }
       } else if (state.authMode === 'update_password') {
         result = await sb.auth.updateUser({ password });
-        if (!result.error) {
-          showAuthMode('signin');
-          setMessage($('#auth-message'), 'Password updated successfully. Sign in with your new password.', 'info');
-          return;
-        }
+        if (!result.error) { showAuthMode('signin'); setMessage($('#auth-message'), 'Password updated successfully. Sign in with your new password.', 'info'); return; }
       } else {
         throw new Error('Unsupported authentication action.');
       }
       if (result && result.error) throw result.error;
       if (result && result.data && result.data.session) await setSession(result.data.session);
     } catch (error) {
-      if (/Email not confirmed/i.test(String(error && error.message || error))) {
-        $('#resend-confirmation').classList.remove('hidden');
-      }
+      if (/Email not confirmed/i.test(String(error && error.message || error))) $('#resend-confirmation').classList.remove('hidden');
       setMessage($('#auth-message'), errorMessage(error), 'error');
     } finally {
       button.disabled = false;
@@ -284,14 +278,6 @@
     const nextUser = session && session.user ? session.user : null;
     const nextId = nextUser ? nextUser.id : null;
     const currentId = state.user ? state.user.id : null;
-    if (nextUser && String(nextUser.email || '').toLowerCase() !== OWNER_EMAIL) {
-      state.user = null;
-      $('#app-shell').classList.add('hidden');
-      $('#auth-screen').classList.remove('hidden');
-      setMessage($('#auth-message'), 'Access denied. Only ' + OWNER_EMAIL + ' can use this admin workspace.', 'error');
-      await sb.auth.signOut();
-      return;
-    }
     if (nextId === currentId && ((nextId && !$('#app-shell').classList.contains('hidden')) || (!nextId && !$('#auth-screen').classList.contains('hidden')))) return;
 
     state.user = nextUser;
@@ -325,10 +311,6 @@
   }
 
   async function loadData() {
-    if (state.previewMode) {
-      $('#data-status-text').textContent = 'Temporary preview · saving disabled';
-      return;
-    }
     if (!sb || !state.user || state.loading) return;
     state.loading = true;
     $('#data-status-text').textContent = 'Syncing workspace…';
@@ -909,10 +891,6 @@
 
   async function submitUtm(event) {
     event.preventDefault();
-    if (state.previewMode) {
-      toast('Temporary preview mode: tracking links cannot be saved until admin login is restored.', 'info');
-      return;
-    }
     const values = currentUtmValues();
     if (!values.destination_url || !values.utm_source || !values.utm_medium || !values.utm_campaign) {
       toast('Fill in the URL, source, medium and campaign name first.', 'error');
@@ -948,10 +926,6 @@
   }
 
   async function updateTaskStatus(id, status) {
-    if (state.previewMode) {
-      toast('Temporary preview mode: task changes are not saved.', 'info');
-      return;
-    }
     const payload = { status };
     if (status === 'done' || status === 'dismissed') payload.resolved_at = new Date().toISOString();
     else payload.resolved_at = null;
@@ -962,10 +936,6 @@
   }
 
   async function advanceExperiment(id, status) {
-    if (state.previewMode) {
-      toast('Temporary preview mode: experiment changes are not saved.', 'info');
-      return;
-    }
     const next = status === 'planned' ? 'running' : status === 'running' ? 'completed' : null;
     if (!next) { toast('This experiment is already marked as ' + status + '.', 'info'); return; }
     const patch = { status: next };
@@ -994,10 +964,6 @@
 
   function handleAction(button) {
     const action = button.dataset.action;
-    if (state.previewMode && action !== 'copy-link') {
-      toast('Temporary preview mode is active. Saving and server changes are disabled until admin login is restored.', 'info');
-      return;
-    }
     const id = button.dataset.id;
     if (action === 'new-campaign') openCampaignModal();
     if (action === 'new-metric') openMetricModal(id || null);
@@ -1017,6 +983,7 @@
 
   function bindEvents() {
     $('#auth-form').addEventListener('submit', handleAuthSubmit);
+    $('#auth-toggle').addEventListener('click', () => showAuthMode(state.authMode === 'signup' ? 'signin' : 'signup'));
     $('#forgot-password').addEventListener('click', () => showAuthMode('reset'));
     $('#resend-confirmation').addEventListener('click', async () => {
       const button = $('#resend-confirmation');
@@ -1025,11 +992,11 @@
       try {
         const result = await sb.auth.resend({
           type: 'signup',
-          email: OWNER_EMAIL,
+          email: $('#auth-email').value.trim().toLowerCase(),
           options: { emailRedirectTo: AUTH_REDIRECT_URL }
         });
         if (result.error) throw result.error;
-        setMessage($('#auth-message'), 'If the account still needs confirmation, a new link has been sent to ' + OWNER_EMAIL + '. Check Inbox and Spam.', 'info');
+        setMessage($('#auth-message'), 'If the account still needs confirmation, a new link has been sent to ' + $('#auth-email').value.trim().toLowerCase() + '. Check Inbox and Spam.', 'info');
       } catch (error) {
         setMessage($('#auth-message'), errorMessage(error), 'error');
       } finally {
@@ -1092,27 +1059,10 @@
   }
 
   async function boot() {
-    if (TEMPORARY_PREVIEW_MODE) {
-      bindEvents();
-      state.previewMode = true;
-      state.user = null;
-      $('#auth-screen').classList.add('hidden');
-      $('#app-shell').classList.remove('hidden');
-      $('#data-status-text').textContent = 'Temporary preview · saving disabled';
-      $('#data-status-text').parentElement.style.opacity = '1';
-      $('#profile-name').textContent = 'Temporary Preview';
-      $('#profile-email').textContent = 'Database access protected';
-      $('#profile-avatar').textContent = 'P';
-      $('#topbar-avatar').textContent = 'P';
-      $('#signout-button').classList.add('hidden');
-      renderAll();
-      toast('Preview access is on. The interface is open, but private server data and save actions remain protected.', 'info');
-      return;
-    }
-
     if (!sb) {
       $('#auth-screen').classList.remove('hidden');
-      setMessage($('#auth-message'), 'Could not initialize the Supabase client. Check network access and refresh.', 'error');
+      $('#app-shell').classList.add('hidden');
+      setMessage($('#auth-message'), 'Could not initialize the Supabase client. Refresh the page and try again.', 'error');
       return;
     }
     bindEvents();
