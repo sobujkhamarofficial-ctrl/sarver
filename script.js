@@ -730,7 +730,7 @@
       const tiktokCtr = age >= 7 ? 0.009 : 0.0055;
       const tiktokClicks = Math.round(tiktokImpressions * tiktokCtr);
       const tiktokSpend = 430 + (day % 4) * 32;
-      const tiktokConversions = age % 4 === 0 ? 1 : 0;
+      const tiktokConversions = age >= 7 ? (age % 3 === 0 ? 3 : 2) : (age % 4 === 0 ? 1 : 0);
       state.metrics.push({ campaign_id: ids.tiktok, metric_date: metricDate, spend: tiktokSpend, impressions: tiktokImpressions, clicks: tiktokClicks, conversions: tiktokConversions, revenue: tiktokConversions * 450 });
     }
     state.targets = [
@@ -746,7 +746,7 @@
     ];
     state.signals = [
       { id: 'demo-signal-ctr', campaign_id: ids.tiktok, campaign_name: 'Demo · TikTok Creative Test', platform: 'tiktok', signal_type: 'ctr_drop', severity: 'high', current_value: 0.55, previous_value: 0.9, change_percent: -38.9, window_start: dateAgo(6), window_end: dateAgo(0), explanation: 'Demo signal: click-through rate is lower in the most recent seven-day window than in the previous illustrative window.', recommended_action: 'Review the opening hook, creative-to-audience match and placement breakdown. Change one major variable at a time.' },
-      { id: 'demo-signal-roas', campaign_id: ids.tiktok, campaign_name: 'Demo · TikTok Creative Test', platform: 'tiktok', signal_type: 'roas_drop', severity: 'medium', current_value: 0.28, previous_value: 1.1, change_percent: -74.5, window_start: dateAgo(6), window_end: dateAgo(0), explanation: 'Demo signal: attributed revenue is low relative to recorded spend in the sample data. This is not a profit calculation.', recommended_action: 'Check event tracking, conversion lag, offer economics and margin before changing budget.' }
+      { id: 'demo-signal-roas', campaign_id: ids.tiktok, campaign_name: 'Demo · TikTok Creative Test', platform: 'tiktok', signal_type: 'roas_drop', severity: 'medium', current_value: 0.27, previous_value: 2.18, change_percent: -87.6, window_start: dateAgo(6), window_end: dateAgo(0), explanation: 'Demo signal: attributed revenue is low relative to recorded spend in the sample data. This is not a profit calculation.', recommended_action: 'Check event tracking, conversion lag, offer economics and margin before changing budget.' }
     ];
     state.experiments = [
       { id: 'demo-experiment-hook', experiment_type: 'creative', status: 'running', name: 'Demo: first-second hook test', primary_metric: 'ctr', hypothesis: 'A clearer product benefit in the first second may earn more qualified clicks.', baseline_value: 0.55, variant_value: 0.9, control_label: 'Current hook', variant_label: 'Benefit-led hook', learning: '', result_summary: '', start_date: dateAgo(5), end_date: null, campaign_id: ids.tiktok },
