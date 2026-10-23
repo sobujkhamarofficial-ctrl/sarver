@@ -51,11 +51,13 @@ Versioned SQL files are tracked under `supabase/migrations/`. The live schema an
 - The dashboard needs authenticated end-to-end testing with test accounts before broad public launch.
 
 
-## Single-owner login
+## Authentication and account setup
 
 Each person can create an account and sign in with their own email and password. New accounts may need email confirmation depending on the Supabase Auth configuration.
 
 Set the Supabase Site URL and allowed redirect URL to:
 `https://sobujkhamarofficial-ctrl.github.io/sarver/`
+
+New users can create accounts from the login screen. If email confirmation is enabled in Supabase Auth, they must confirm the address once before their first sign-in.
 
 Each authenticated account sees and edits its own workspace data under Row Level Security.
