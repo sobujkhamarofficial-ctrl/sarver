@@ -2,6 +2,7 @@
   'use strict';
 
   const OWNER_EMAIL = 'sobujkhamar.official@gmail.com';
+  const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
   const sb = window.supabase && window.supabase.createClient
@@ -246,7 +247,7 @@
         result = await sb.auth.signUp({
           email,
           password,
-          options: { data: { full_name: name || email.split('@')[0] }, emailRedirectTo: window.location.origin + window.location.pathname }
+          options: { data: { full_name: name || email.split('@')[0] }, emailRedirectTo: AUTH_REDIRECT_URL }
         });
         if (!result.error && result.data && !result.data.session) {
           $('#resend-confirmation').classList.remove('hidden');
@@ -254,7 +255,7 @@
           return;
         }
       } else if (state.authMode === 'reset') {
-        result = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+        result = await sb.auth.resetPasswordForEmail(email, { redirectTo: AUTH_REDIRECT_URL });
         if (!result.error) {
           setMessage($('#auth-message'), 'If this email belongs to an account, a password-reset link has been sent.', 'info');
           return;
@@ -1004,7 +1005,7 @@
         const result = await sb.auth.resend({
           type: 'signup',
           email: OWNER_EMAIL,
-          options: { emailRedirectTo: window.location.origin + window.location.pathname }
+          options: { emailRedirectTo: AUTH_REDIRECT_URL }
         });
         if (result.error) throw result.error;
         setMessage($('#auth-message'), 'If the account still needs confirmation, a new link has been sent to ' + OWNER_EMAIL + '. Check Inbox and Spam.', 'info');
