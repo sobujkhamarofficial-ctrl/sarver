@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174b37">
+  <meta name="description" content="Halal Food — আপনার প্রতিদিনের রান্না ও গ্রোসারির জন্য বেছে নেওয়া পণ্য।">
+  <title>Halal Food — প্রতিদিনের ভালো পছন্দ</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="announcement">আপনার দৈনন্দিন বাজারে সহজ, যত্নে বেছে নেওয়া পণ্য</div>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="Halal Food হোম">
+      <span class="brand-mark" aria-hidden="true">❋</span>
+      <span class="brand-name">Halal <b>Food</b><small>ভালো পছন্দ, প্রতিদিন</small></span>
+    </a>
+    <button class="menu-toggle" aria-label="মেনু খুলুন" aria-expanded="false"><span></span><span></span><span></span></button>
+    <nav class="main-nav" aria-label="প্রধান নেভিগেশন">
+      <a href="#home">হোম</a><a href="#products">পণ্যসমূহ</a><a href="#about">আমাদের সম্পর্কে</a><a href="#contact">যোগাযোগ</a>
+    </nav>
+    <a class="header-cta" href="#products">পণ্য দেখুন <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> আপনার পরিবারের জন্য</span>
+        <h1>প্রতিদিনের রান্নায়<br><em>ভালো পছন্দ</em> বেছে নিন।</h1>
+        <p>রান্নাঘরের প্রয়োজনীয় তেল ও গ্রোসারি পণ্য খুঁজে নিন এক জায়গায়। পণ্য বেছে নেওয়া থেকে অর্ডারের তথ্য—সবকিছু সহজ ও পরিষ্কারভাবে।</p>
+        <div class="hero-actions"><a class="button button-primary" href="#products">আমাদের পণ্য দেখুন <span aria-hidden="true">→</span></a><a class="text-link" href="#about">Halal Food সম্পর্কে <span aria-hidden="true">↗</span></a></div>
+        <div class="hero-note"><span class="note-icon">✳</span><span><b>যত্নে বেছে নেওয়া</b><small>প্রতিদিনের প্রয়োজনের কথা ভেবে</small></span></div>
+      </div>
+      <div class="hero-art" aria-label="রান্নাঘরের তেল ও প্রাকৃতিক উপাদানের অলংকারমূলক চিত্র" role="img">
+        <div class="art-cream"></div><div class="sun-disc"></div>
+        <div class="leaf leaf-one"></div><div class="leaf leaf-two"></div><div class="leaf leaf-three"></div>
+        <div class="oil-bottle bottle-large"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"><div class="bottle-label"><span>HALAL</span><b>FOOD</b><i>PURE & SIMPLE</i></div></div></div>
+        <div class="oil-bottle bottle-small"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"><div class="bottle-label bottle-label-small"><span>HALAL</span><b>FOOD</b></div></div></div>
+        <div class="seed seed-one"></div><div class="seed seed-two"></div><div class="seed seed-three"></div>
+        <div class="art-caption"><span>01 / EVERYDAY ESSENTIALS</span><b>Simple choices. Thoughtfully selected.</b></div>
+      </div>
+      <div class="hero-bottom"><span>ভালো পণ্যে, প্রতিদিনের যত্নে</span><span class="scroll-cue">নিচে দেখুন <i>↓</i></span></div>
+    </section>
+
+    <section class="products-section section-pad" id="products">
+      <div class="section-heading">
+        <div><span class="eyebrow">আমাদের সংগ্রহ</span><h2>রান্নাঘরের <em>প্রয়োজনীয়</em> পণ্য</h2></div>
+        <p>আপনার পছন্দের পণ্যটি খুঁজে নিন। দাম বা স্টক সম্পর্কে জানতে সরাসরি যোগাযোগ করুন।</p>
+      </div>
+      <div class="product-grid">
+        <article class="product-card" data-product="Virgin Coconut Oil"><div class="product-visual visual-coconut"><span class="product-number">01</span><div class="mini-bottle coconut-bottle"><span></span></div><div class="coconut-shape coconut-a"></div><div class="coconut-shape coconut-b"></div><div class="product-tag">প্রাকৃতিক পছন্দ</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Virgin Coconut Oil</h3><p>ভার্জিন নারিকেল তেল</p></div><button class="product-link" aria-label="Virgin Coconut Oil সম্পর্কে জানুন">↗</button></div></article>
+        <article class="product-card" data-product="Extra Virgin Olive Oil"><div class="product-visual visual-olive"><span class="product-number">02</span><div class="mini-bottle olive-bottle"><span></span></div><div class="olive-branch"><i></i><i></i><i></i><i></i></div><div class="product-tag">দৈনন্দিন সংগ্রহ</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Extra Virgin Olive Oil</h3><p>এক্সট্রা ভার্জিন অলিভ অয়েল</p></div><button class="product-link" aria-label="Extra Virgin Olive Oil সম্পর্কে জানুন">↗</button></div></article>
+        <article class="product-card" data-product="Sunflower Oil"><div class="product-visual visual-sunflower"><span class="product-number">03</span><div class="mini-bottle sunflower-bottle"><span></span></div><div class="sunflower"><div class="sunflower-core"></div></div><div class="product-tag">রান্নার সঙ্গী</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Sunflower Oil</h3><p>সূর্যমুখী তেল</p></div><button class="product-link" aria-label="Sunflower Oil সম্পর্কে জানুন">↗</button></div></article>
+        <article class="product-card" data-product="Soybean Oil"><div class="product-visual visual-soy"><span class="product-number">04</span><div class="mini-bottle soy-bottle"><span></span></div><div class="soy-beans"><i></i><i></i><i></i><i></i><i></i></div><div class="product-tag">রান্নার প্রয়োজন</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Soybean Oil</h3><p>সয়াবিন তেল</p></div><button class="product-link" aria-label="Soybean Oil সম্পর্কে জানুন">↗</button></div></article>
+        <article class="product-card" data-product="Pure Mustard Oil"><div class="product-visual visual-mustard"><span class="product-number">05</span><div class="mini-bottle mustard-bottle"><span></span></div><div class="mustard-seeds"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="product-tag">দেশি স্বাদের ছোঁয়া</div></div><div class="product-info"><div><span class="product-category">COOKING OIL</span><h3>Pure Mustard Oil</h3><p>খাঁটি সরিষার তেল</p></div><button class="product-link" aria-label="Pure Mustard Oil সম্পর্কে জানুন">↗</button></div></article>
+        <a class="more-card" href="#contact"><span class="more-icon">＋</span><span class="more-title">আরও পণ্য খুঁজছেন?</span><span class="more-copy">আপনার প্রয়োজন জানাতে আমাদের সঙ্গে যোগাযোগ করুন।</span><span class="more-arrow">যোগাযোগ করুন ↗</span></a>
+      </div>
+      <p class="catalog-note">পণ্যের চিত্রগুলো প্রাথমিক ডিজাইন-ইলাস্ট্রেশন। প্রকাশের আগে প্রতিটি পণ্যের আসল ছবি ও অনুমোদিত তথ্য যোগ করুন।</p>
+    </section>
+
+    <section class="about-section section-pad" id="about">
+      <div class="about-mark"><span>HF</span><i>✳</i></div>
+      <div class="about-copy"><span class="eyebrow">আমাদের সম্পর্কে</span><h2>ভালো পছন্দ শুরু হয়<br><em>বিশ্বাস ও যত্ন</em> থেকে।</h2><p>Halal Food একটি বাংলাদেশি ফুড ও গ্রোসারি ব্র্যান্ড। প্রতিদিনের প্রয়োজনীয় পণ্য সহজে খুঁজে পাওয়া এবং কেনাকাটার আগে প্রয়োজনীয় তথ্য জানা—এই অভিজ্ঞতাকে আরও সহজ করাই আমাদের লক্ষ্য।</p><a class="text-link" href="#contact">আমাদের সঙ্গে কথা বলুন <span aria-hidden="true">↗</span></a></div>
+      <div class="about-stamp"><span>MADE FOR</span><b>EVERYDAY<br>GOODNESS</b><span>HALAL FOOD</span></div>
+    </section>
+
+    <section class="contact-section section-pad" id="contact">
+      <div class="contact-copy"><span class="eyebrow">যোগাযোগ</span><h2>আপনার পছন্দের পণ্য<br><em>সম্পর্কে জানতে চান?</em></h2><p>পণ্যের দাম, স্টক, ডেলিভারি বা অর্ডার সম্পর্কে জানতে যোগাযোগের তথ্য ব্যবহার করুন। সাইট প্রকাশের আগে নমুনা ইমেইলটি আপনার আসল যোগাযোগের তথ্য দিয়ে বদলে নিন।</p></div>
+      <div class="contact-panel"><span class="contact-label">GET IN TOUCH</span><div class="contact-row"><span class="contact-icon">✉</span><div><small>ইমেইল</small><a href="mailto:hello@example.com">hello@example.com</a></div><span class="placeholder-pill">পরিবর্তন করুন</span></div><div class="contact-row"><span class="contact-icon">⌖</span><div><small>অবস্থান</small><b>বাংলাদেশ</b><span class="contact-muted">আপনার ঠিকানা যোগ করুন</span></div></div><a class="button button-light" href="mailto:hello@example.com?subject=Halal%20Food%20Product%20Inquiry">ইমেইল করুন <span aria-hidden="true">↗</span></a></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><a class="footer-brand" href="#home">Halal <b>Food</b></a><span>ভালো পছন্দ, প্রতিদিন।</span><span class="copyright">© <span id="year"></span> Halal Food</span></footer>
+  <dialog class="product-dialog" aria-labelledby="dialog-title"><button class="dialog-close" aria-label="বন্ধ করুন">×</button><span class="eyebrow">পণ্যের তথ্য</span><h2 id="dialog-title">Product</h2><p>এই পণ্যটির দাম, প্রাপ্যতা এবং অর্ডারের তথ্য জানতে Halal Food-এর সঙ্গে যোগাযোগ করুন।</p><a class="button button-primary dialog-contact" href="#contact">যোগাযোগের তথ্য দেখুন ↗</a></dialog>
+</body>
+</html>
