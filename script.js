@@ -14,6 +14,8 @@
   const state = {
     user: null,
     previewMode: false,
+    previewEmail: '',
+    mathAnswer: null,
     view: 'overview',
     authMode: 'signin',
     campaigns: [],
@@ -201,6 +203,66 @@
     return '<span class="priority-pill ' + esc(clean) + '">' + esc(clean) + '</span>';
   }
 
+  function nextPreviewMathChallenge() {
+    const first = 1 + Math.floor(Math.random() * 10);
+    const second = 1 + Math.floor(Math.random() * 10);
+    state.mathAnswer = first + second;
+    $('#math-question').textContent = first + ' + ' + second + ' = ?';
+    $('#auth-math').value = '';
+  }
+
+  function configurePreviewLogin() {
+    $('#auth-screen').classList.remove('hidden');
+    $('#app-shell').classList.add('hidden');
+    $('#name-field').classList.add('hidden');
+    $('#name-field').querySelector('input').required = false;
+    $('#password-field').classList.add('hidden');
+    $('#auth-password').required = false;
+    $('#math-field').classList.remove('hidden');
+    $('#auth-math').required = true;
+    $('.auth-tools').forEach(item => item.classList.add('hidden'));
+    $('#auth-eyebrow').textContent = 'QUICK ACCESS';
+    $('#auth-title').textContent = 'Open your dashboard.';
+    $('#auth-subtitle').textContent = 'Enter your email address and solve the simple addition question. No password needed.';
+    $('#auth-submit').innerHTML = 'Open dashboard <span aria-hidden="true">↗</span>';
+    $('#email-field').querySelector('small').textContent = 'Used only to label this preview session';
+    $('.auth-trust span:last-child').textContent = 'Preview only — private data and saving stay disabled.';
+    $('#signout-button').classList.add('hidden');
+    $('#auth-email').value = state.previewEmail || '';
+    setMessage($('#auth-message'), '', '');
+    nextPreviewMathChallenge();
+  }
+
+  function handlePreviewLogin(event) {
+    event.preventDefault();
+    const email = $('#auth-email').value.trim().toLowerCase();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      setMessage($('#auth-message'), 'Enter a valid email address.', 'error');
+      return;
+    }
+    const answerText = $('#auth-math').value.trim();
+    if (!answerText || Number(answerText) !== state.mathAnswer) {
+      setMessage($('#auth-message'), 'That answer is not correct. Try the new addition question.', 'error');
+      nextPreviewMathChallenge();
+      return;
+    }
+
+    state.previewEmail = email;
+    state.user = null;
+    $('#auth-screen').classList.add('hidden');
+    $('#app-shell').classList.remove('hidden');
+    const displayName = (email.split('@')[0] || 'Preview User').replace(/[._-]+/g, ' ').replace(/\\b\\w/g, letter => letter.toUpperCase());
+    $('#profile-name').textContent = displayName;
+    $('#profile-email').textContent = email;
+    $('#profile-avatar').textContent = initials(displayName);
+    $('#topbar-avatar').textContent = initials(displayName);
+    $('#data-status-text').textContent = 'Preview session · saving and private data paused';
+    $('#data-status-text').parentElement.style.opacity = '1';
+    $('#signout-button').classList.remove('hidden');
+    renderAll();
+    toast('Preview opened. The email is only a label; private data and saving remain disabled.', 'info');
+  }
+
   function showAuthMode(mode) {
     state.authMode = ['signup','reset','update_password'].includes(mode) ? mode : 'signin';
     const signup = state.authMode === 'signup';
@@ -224,6 +286,10 @@
     $('#auth-password').required = !reset;
     $('#auth-password').autocomplete = signup || updatePassword ? 'new-password' : 'current-password';
     $('#auth-password').placeholder = signup || updatePassword ? 'At least 8 characters' : 'Your password';
+    $('#math-field').classList.add('hidden');
+    $('#auth-math').required = false;
+    $('.auth-tools').forEach(item => item.classList.remove('hidden'));
+    $('.auth-trust span:last-child').textContent = 'Your data is private to your signed-in account.';
     setMessage($('#auth-message'), '', '');
   }
 
@@ -1264,7 +1330,10 @@
   }
 
   function bindEvents() {
-    $('#auth-form').addEventListener('submit', handleAuthSubmit);
+    $('#auth-form').addEventListener('submit', event => {
+      if (TEMPORARY_PREVIEW_MODE) { handlePreviewLogin(event); return; }
+      handleAuthSubmit(event);
+    });
     $('#auth-toggle').addEventListener('click', () => showAuthMode(state.authMode === 'signup' ? 'signin' : 'signup'));
     $('#forgot-password').addEventListener('click', () => showAuthMode('reset'));
     $('#resend-confirmation').addEventListener('click', async () => {
@@ -1288,13 +1357,19 @@
     $('#refresh-button').addEventListener('click', loadData);
     $('#refresh-signals').addEventListener('click', async () => { await loadData(); if (!state.previewMode) toast('Diagnostics refreshed.', 'success'); });
     $('#signout-button').addEventListener('click', async () => {
-      if (state.previewMode) { toast('Preview mode has no signed-in session.', 'info'); return; }
+      if (state.previewMode) {
+        state.previewEmail = '';
+        state.user = null;
+        configurePreviewLogin();
+        toast('Signed out. Enter your email and solve a new addition question next time.', 'info');
+        return;
+      }
       const result = await sb.auth.signOut();
       if (result.error) toast(errorMessage(result.error), 'error');
       else toast('Signed out.', 'success');
     });
     $('#mobile-menu').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
-    $('#profile-button').addEventListener('click', () => toast(state.user ? state.user.email : 'No signed-in user', 'info'));
+    $('#profile-button').addEventListener('click', () => toast(state.user ? state.user.email : state.previewEmail ? 'Preview email: ' + state.previewEmail + ' (not verified)' : 'No signed-in user', 'info'));
     $('#overview-range').addEventListener('change', event => {
       state.range = Number(event.target.value) || 14;
       renderOverview();
@@ -1347,17 +1422,14 @@
       bindEvents();
       state.previewMode = true;
       state.user = null;
-      $('#auth-screen').classList.add('hidden');
-      $('#app-shell').classList.remove('hidden');
-      $('#data-status-text').textContent = 'Dashboard preview · saving and private data paused';
+      state.previewEmail = '';
+      $('#data-status-text').textContent = 'Preview login required · private data protected';
       $('#data-status-text').parentElement.style.opacity = '1';
-      $('#profile-name').textContent = 'Dashboard Preview';
-      $('#profile-email').textContent = 'Account data protected';
+      $('#profile-name').textContent = 'Preview user';
+      $('#profile-email').textContent = 'Not signed in';
       $('#profile-avatar').textContent = 'P';
       $('#topbar-avatar').textContent = 'P';
-      $('#signout-button').classList.add('hidden');
-      renderAll();
-      toast('Dashboard opened directly in preview mode. Database records and save actions remain protected.', 'info');
+      configurePreviewLogin();
       return;
     }
 
