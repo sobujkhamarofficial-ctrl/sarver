@@ -16,6 +16,7 @@
     previewMode: false,
     previewEmail: '',
     mathAnswer: null,
+    isDemoData: false,
     view: 'overview',
     authMode: 'signin',
     campaigns: [],
@@ -212,6 +213,7 @@
   }
 
   function configurePreviewLogin() {
+    resetPreviewWorkspace();
     $('#auth-screen').classList.remove('hidden');
     $('#app-shell').classList.add('hidden');
     $('#name-field').classList.add('hidden');
@@ -380,7 +382,7 @@
 
   async function loadData() {
     if (state.previewMode) {
-      $('#data-status-text').textContent = 'Dashboard preview · saving and private data paused';
+      $('#data-status-text').textContent = state.isDemoData ? 'DEMO DATA · local preview only' : 'Dashboard preview · saving and private data paused';
       return;
     }
     if (!sb || !state.user || state.loading) return;
@@ -688,6 +690,92 @@
     }, 'DATA IMPORT');
   }
 
+  function resetPreviewWorkspace() {
+    ['campaigns', 'metrics', 'tasks', 'signals', 'experiments', 'links', 'history', 'targets'].forEach(key => { state[key] = []; });
+    state.isDemoData = false;
+    const banner = $('#demo-data-banner');
+    if (banner) banner.classList.add('hidden');
+    const button = $('#demo-load-button');
+    if (button) button.classList.remove('hidden');
+  }
+
+  function loadDemoWorkspace() {
+    if (!state.previewMode) {
+      toast('The sample workspace is available in preview mode only.', 'info');
+      return;
+    }
+    const ids = { meta: 'demo-meta-prospecting', google: 'demo-google-search', tiktok: 'demo-tiktok-creative' };
+    state.campaigns = [
+      { campaign_id: ids.meta, name: 'Demo · Meta Prospecting', platform: 'facebook', budget: 35000, status: 'active', start_date: dateAgo(29) },
+      { campaign_id: ids.google, name: 'Demo · Google Search', platform: 'google', budget: 28000, status: 'active', start_date: dateAgo(29) },
+      { campaign_id: ids.tiktok, name: 'Demo · TikTok Creative Test', platform: 'tiktok', budget: 18000, status: 'active', start_date: dateAgo(29) }
+    ];
+    state.metrics = [];
+    for (let age = 29; age >= 0; age--) {
+      const metricDate = dateAgo(age);
+      const day = 29 - age;
+      const metaImpressions = 8200 + (day % 5) * 360;
+      const metaClicks = Math.round(metaImpressions * (0.010 + (day % 3) * 0.0006));
+      const metaSpend = 520 + (day % 5) * 34;
+      const metaConversions = 2 + (day % 4 === 0 ? 1 : 0);
+      state.metrics.push({ campaign_id: ids.meta, metric_date: metricDate, spend: metaSpend, impressions: metaImpressions, clicks: metaClicks, conversions: metaConversions, revenue: metaConversions * 620 });
+
+      const googleImpressions = 3100 + (day % 4) * 230;
+      const googleClicks = Math.round(googleImpressions * (0.028 + (day % 3) * 0.003));
+      const googleSpend = 520 + (day % 4) * 38;
+      const googleConversions = 5 + (day % 4);
+      state.metrics.push({ campaign_id: ids.google, metric_date: metricDate, spend: googleSpend, impressions: googleImpressions, clicks: googleClicks, conversions: googleConversions, revenue: googleConversions * 540 });
+
+      const tiktokImpressions = 9800 + (day % 4) * 620;
+      const tiktokCtr = age >= 7 ? 0.009 : 0.0055;
+      const tiktokClicks = Math.round(tiktokImpressions * tiktokCtr);
+      const tiktokSpend = 430 + (day % 4) * 32;
+      const tiktokConversions = age % 4 === 0 ? 1 : 0;
+      state.metrics.push({ campaign_id: ids.tiktok, metric_date: metricDate, spend: tiktokSpend, impressions: tiktokImpressions, clicks: tiktokClicks, conversions: tiktokConversions, revenue: tiktokConversions * 450 });
+    }
+    state.targets = [
+      { campaign_id: ids.meta, target_ctr_percent: 0.8, target_cpc: 15, target_cpa: 250, target_roas: 2.5, daily_spend_limit: 1500, min_clicks_for_alert: 50, min_conversions_for_decision: 5, notes: 'Illustrative target for demo only.' },
+      { campaign_id: ids.google, target_ctr_percent: 2.5, target_cpc: 16, target_cpa: 150, target_roas: 3.5, daily_spend_limit: 1300, min_clicks_for_alert: 50, min_conversions_for_decision: 5, notes: 'Illustrative target for demo only.' },
+      { campaign_id: ids.tiktok, target_ctr_percent: 0.9, target_cpc: 12, target_cpa: 350, target_roas: 1.8, daily_spend_limit: 1000, min_clicks_for_alert: 50, min_conversions_for_decision: 5, notes: 'Illustrative target for demo only.' }
+    ];
+    const nowIso = offset => new Date(dateAgo(offset) + 'T10:00:00').toISOString();
+    state.tasks = [
+      { id: 'demo-task-creative', campaign_id: ids.tiktok, title: 'Test a stronger opening hook', issue_type: 'ctr_drop', priority: 'high', status: 'open', recommended_action: 'Compare two distinct first-second hooks while keeping audience and budget stable. Use a consistent testing window.', evidence: { demo: true, ctr: 0.55 }, created_at: nowIso(1), due_date: dateAgo(-2) },
+      { id: 'demo-task-tracking', campaign_id: ids.tiktok, title: 'Verify the conversion path', issue_type: 'conversion_review', priority: 'medium', status: 'in_progress', recommended_action: 'Check the purchase event, landing page load, offer clarity and attribution settings before interpreting low recorded revenue.', evidence: { demo: true }, created_at: nowIso(3), due_date: dateAgo(-1) },
+      { id: 'demo-task-scale', campaign_id: ids.google, title: 'Protect the search campaign baseline', issue_type: 'efficiency_review', priority: 'low', status: 'open', recommended_action: 'Validate search terms, conversion quality and contribution margin before moving budget.', evidence: { demo: true }, created_at: nowIso(2), due_date: dateAgo(-4) }
+    ];
+    state.signals = [
+      { id: 'demo-signal-ctr', campaign_id: ids.tiktok, campaign_name: 'Demo · TikTok Creative Test', platform: 'tiktok', signal_type: 'ctr_drop', severity: 'high', current_value: 0.55, previous_value: 0.9, change_percent: -38.9, window_start: dateAgo(6), window_end: dateAgo(0), explanation: 'Demo signal: click-through rate is lower in the most recent seven-day window than in the previous illustrative window.', recommended_action: 'Review the opening hook, creative-to-audience match and placement breakdown. Change one major variable at a time.' },
+      { id: 'demo-signal-roas', campaign_id: ids.tiktok, campaign_name: 'Demo · TikTok Creative Test', platform: 'tiktok', signal_type: 'roas_drop', severity: 'medium', current_value: 0.28, previous_value: 1.1, change_percent: -74.5, window_start: dateAgo(6), window_end: dateAgo(0), explanation: 'Demo signal: attributed revenue is low relative to recorded spend in the sample data. This is not a profit calculation.', recommended_action: 'Check event tracking, conversion lag, offer economics and margin before changing budget.' }
+    ];
+    state.experiments = [
+      { id: 'demo-experiment-hook', experiment_type: 'creative', status: 'running', name: 'Demo: first-second hook test', primary_metric: 'ctr', hypothesis: 'A clearer product benefit in the first second may earn more qualified clicks.', baseline_value: 0.55, variant_value: 0.9, control_label: 'Current hook', variant_label: 'Benefit-led hook', learning: '', result_summary: '', start_date: dateAgo(5), end_date: null, campaign_id: ids.tiktok },
+      { id: 'demo-experiment-search', experiment_type: 'landing_page', status: 'planned', name: 'Demo: landing-page clarity test', primary_metric: 'conversion_rate', hypothesis: 'A more direct offer and visible trust details may improve post-click conversion.', baseline_value: null, variant_value: null, control_label: 'Current page', variant_label: 'Simplified page', learning: '', result_summary: '', start_date: dateAgo(-1), end_date: null, campaign_id: ids.google }
+    ];
+    state.links = [
+      { id: 'demo-link-1', destination_url: 'https://example.com/offer', utm_source: 'tiktok', utm_medium: 'paid_social', utm_campaign: 'demo_creative_test', utm_term: '', utm_content: 'benefit_hook', campaign_id: ids.tiktok, created_at: nowIso(2) },
+      { id: 'demo-link-2', destination_url: 'https://example.com/search-offer', utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'demo_search_campaign', utm_term: 'sample_keyword', utm_content: '', campaign_id: ids.google, created_at: nowIso(4) }
+    ];
+    state.history = [
+      { id: 'demo-history-1', campaign_id: ids.tiktok, description: 'Demo: flagged creative fatigue for review', action_type: 'creative_test', outcome: 'in_progress', rationale: 'CTR is below the illustrative target in the latest window.', outcome_notes: 'Example record only. No advertising platform has been changed.', before_metrics: { ctr: 0.9 }, after_metrics: { ctr: 0.55 }, action_at: nowIso(1), task_id: 'demo-task-creative' },
+      { id: 'demo-history-2', campaign_id: ids.google, description: 'Demo: preserve search performance baseline', action_type: 'budget_review', outcome: 'planned', rationale: 'Review margin and conversion quality before budget decisions.', outcome_notes: 'Example record only.', before_metrics: { roas: 4.7 }, after_metrics: {}, action_at: nowIso(2), task_id: 'demo-task-scale' }
+    ];
+    state.isDemoData = true;
+    $('#demo-data-banner').classList.remove('hidden');
+    $('#demo-load-button').classList.add('hidden');
+    $('#data-status-text').textContent = 'DEMO DATA · local preview only';
+    renderAll();
+    toast('Sample workspace loaded locally. Nothing was saved to Supabase or sent to an ad platform.', 'success');
+  }
+
+  function clearDemoWorkspace() {
+    if (!state.isDemoData) return toast('There is no sample workspace to clear.', 'info');
+    resetPreviewWorkspace();
+    $('#data-status-text').textContent = 'Dashboard preview · saving and private data paused';
+    renderAll();
+    toast('Sample data cleared from this browser session.', 'success');
+  }
+
   function renderAll() {
     renderOverview();
     renderGettingStarted();
@@ -726,6 +814,56 @@
     renderQueuePreview();
     renderCampaignPreview();
     renderSignalPreview();
+    renderSmartInsights();
+  }
+
+  function renderSmartInsights() {
+    const host = $('#smart-insights');
+    if (!host) return;
+    const rows = activeRangeMetrics();
+    const totals = derived(rows);
+    const ideas = [];
+    const add = (level, category, title, detail, actionLabel, action, view) => ideas.push({ level, category, title, detail, actionLabel, action, view, order: ({ critical: 4, high: 3, medium: 2, low: 1, info: 0 })[level] || 0 });
+    const demo = state.isDemoData;
+    $('#smart-insight-status').textContent = demo ? 'DEMO DATA · ' + rows.length + ' records' : rows.length ? rows.length + ' records reviewed' : 'Waiting for data';
+
+    if (!state.campaigns.length) {
+      add('info', 'Setup', 'No campaign data to analyze yet', 'The dashboard gets useful when campaign spend, impressions, clicks and results are recorded. Explore a labeled sample workspace to see the calculations and diagnostics in action.', 'Explore demo', 'load-demo-workspace', '');
+    } else if (!rows.length) {
+      add('medium', 'Data coverage', 'Campaigns are set up, but this period has no metrics', 'Add daily results or review the date range. Empty metrics are not evidence of poor campaign performance.', 'Open campaigns', '', 'campaigns');
+    } else {
+      const uniqueDates = new Set(rows.map(row => row.metric_date));
+      if (totals.impressions < 5000 || totals.clicks < 100 || uniqueDates.size < Math.min(7, state.range)) {
+        add('low', 'Confidence', 'Treat the current result as an early signal', 'The selected period has ' + number(totals.impressions) + ' impressions, ' + number(totals.clicks) + ' clicks across ' + uniqueDates.size + ' reporting day(s). Collect a larger and more consistent sample before making large changes.', 'Review diagnostics', '', 'diagnostics');
+      }
+      const newest = rows.map(row => row.metric_date).sort().slice(-1)[0];
+      if (newest) {
+        const age = Math.floor((new Date(dateAgo(0) + 'T12:00:00').getTime() - new Date(newest + 'T12:00:00').getTime()) / 86400000);
+        if (age > 2) add('medium', 'Data freshness', 'Your latest metrics may be stale', 'The newest recorded metric is from ' + displayDate(newest) + '. Check that the report was imported for the latest completed days before acting on this trend.', 'Review campaigns', '', 'campaigns');
+      }
+
+      const perCampaign = state.campaigns.map(campaign => ({ campaign, metrics: campaignMetrics(campaign.campaign_id, rows), target: state.targets.find(t => t.campaign_id === campaign.campaign_id) })).filter(item => item.metrics.spend > 0 || item.metrics.impressions > 0);
+      perCampaign.forEach(({ campaign, metrics: m, target }) => {
+        if (target && target.target_ctr_percent !== null && target.target_ctr_percent !== undefined && m.ctr !== null && m.impressions >= 1000 && m.ctr < Number(target.target_ctr_percent)) {
+          add('high', 'Creative', campaign.name + ' is below its CTR target', 'Recorded CTR is ' + decimal(m.ctr, 2) + '% versus the target of ' + decimal(target.target_ctr_percent, 2) + '%. Review the audience-to-message match, opening hook and creative before changing spend.', 'Review campaign', '', 'campaigns');
+        } else if (m.impressions >= 3000 && m.ctr !== null && m.ctr < 0.7) {
+          add('medium', 'Creative', campaign.name + ' may need a creative review', 'CTR is ' + decimal(m.ctr, 2) + '% across ' + number(m.impressions) + ' impressions. Compare creative, audience and placement performance; 0.7% is a review trigger here, not a universal benchmark.', 'Review campaign', '', 'campaigns');
+        }
+        if (m.clicks >= 50 && m.conversions === 0) add('high', 'Conversion path', 'Check tracking and the post-click journey for ' + campaign.name, 'There are ' + number(m.clicks) + ' clicks but no recorded conversions in this range. Verify the conversion event, landing page, offer and attribution window before concluding that the campaign failed.', 'Review diagnostics', '', 'diagnostics');
+        if (m.spend >= 500 && m.roas !== null && m.roas < 1) add('high', 'Efficiency', campaign.name + ' has less recorded revenue than spend', 'Recorded ROAS is ' + ratio(m.roas) + ' for ' + money(m.spend) + ' spend. Reconcile attribution and margins before scaling down or up; revenue divided by spend is not the same as profit.', 'Review campaign', '', 'campaigns');
+        if (target && target.target_cpa && m.cpa !== null && m.conversions >= 5 && m.cpa > Number(target.target_cpa)) add('medium', 'Acquisition cost', campaign.name + ' is above its CPA target', 'Recorded CPA is ' + money(m.cpa) + ' against a target of ' + money(target.target_cpa) + '. Compare conversion quality and attribution before making a decision.', 'Review diagnostics', '', 'diagnostics');
+        if (target && target.target_roas && m.roas !== null && m.spend > 500 && m.roas < Number(target.target_roas)) add('medium', 'Return', campaign.name + ' is below its ROAS target', 'Recorded ROAS is ' + ratio(m.roas) + ' against a target of ' + ratio(target.target_roas) + '. Review product mix, conversion value and attribution.', 'Review diagnostics', '', 'diagnostics');
+      });
+      if (!ideas.length) {
+        const strongest = perCampaign.filter(item => item.metrics.roas !== null).sort((a, b) => b.metrics.roas - a.metrics.roas)[0];
+        if (strongest) add('info', 'Protect what works', 'Review the strongest tracked return before scaling', strongest.campaign.name + ' currently has the highest tracked ROAS in this date range at ' + ratio(strongest.metrics.roas) + '. Confirm margin, conversion quality and tracking consistency before increasing budget.', 'Review campaigns', '', 'campaigns');
+        else add('info', 'Next step', 'Keep improving data coverage', 'Record spend, impressions, clicks, conversions and attributed revenue consistently so the dashboard can move beyond surface-level metrics.', 'Review campaigns', '', 'campaigns');
+      }
+    }
+
+    ideas.sort((a, b) => b.order - a.order);
+    const visible = ideas.slice(0, 3);
+    host.innerHTML = visible.map(item => '<article class="smart-insight-card ' + esc(item.level) + '"><div class="smart-insight-top"><span class="insight-priority">' + esc(item.level.toUpperCase()) + '</span><span class="insight-theme">' + esc(item.category) + '</span></div><h3>' + esc(item.title) + '</h3><p>' + esc(item.detail) + '</p><div class="smart-insight-foot"><span>RULE-BASED REVIEW</span>' + (item.action ? '<button class="small-action" data-action="' + escapeAttr(item.action) + '">' + esc(item.actionLabel) + ' ↗</button>' : item.view ? '<button class="small-action" data-view="' + escapeAttr(item.view) + '">' + esc(item.actionLabel) + ' ↗</button>' : '') + '</div></article>').join('');
   }
 
   function renderSpendChart(rows) {
@@ -1305,11 +1443,13 @@
 
   function handleAction(button) {
     const action = button.dataset.action;
-    if (state.previewMode && !['copy-link', 'download-metrics-template'].includes(action)) {
-      toast('Dashboard preview is open. Account data and save actions stay protected until sign-in is restored.', 'info');
+    if (state.previewMode && !['copy-link', 'download-metrics-template', 'load-demo-workspace', 'clear-demo-workspace'].includes(action)) {
+      toast('Preview mode keeps account data and saves disabled. Use the demo workspace to explore the dashboard.', 'info');
       return;
     }
     const id = button.dataset.id;
+    if (action === 'load-demo-workspace') loadDemoWorkspace();
+    if (action === 'clear-demo-workspace') clearDemoWorkspace();
     if (action === 'new-campaign') openCampaignModal();
     if (action === 'download-metrics-template') downloadMetricsTemplate();
     if (action === 'import-metrics') $('#metrics-csv-input').click();
