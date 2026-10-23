@@ -1,6 +1,7 @@
 (() => {
   'use strict';
 
+  const OWNER_EMAIL = 'sobujkhamar.official@gmail.com';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
   const sb = window.supabase && window.supabase.createClient
@@ -85,8 +86,8 @@
   function errorMessage(error) {
     if (!error) return 'Something went wrong. Please try again.';
     const message = String(error.message || error);
-    if (/Invalid login credentials/i.test(message)) return 'Email or password is incorrect.';
-    if (/Email not confirmed/i.test(message)) return 'Please confirm your email address before signing in.';
+    if (/Invalid login credentials/i.test(message)) return 'Password may be incorrect. Use “Forgot password?” to set a new one.';
+    if (/Email not confirmed/i.test(message)) return 'Your email is not confirmed yet. Use “Resend confirmation email”, open Gmail, and click the confirmation link before signing in.';
     if (/User already registered/i.test(message)) return 'An account with this email already exists. Try signing in.';
     if (/Password should be at least/i.test(message)) return 'Choose a stronger password with at least 8 characters.';
     if (/row-level security|permission denied|not allowed/i.test(message)) return 'The request was blocked by database permissions. Confirm you are signed in and try again.';
@@ -204,11 +205,11 @@
     const reset = mode === 'reset';
     const updatePassword = mode === 'update_password';
     $('#name-field').classList.toggle('hidden', !signup);
-    $('#auth-title').textContent = signup ? 'Create your workspace.' : reset ? 'Reset your password.' : updatePassword ? 'Choose a new password.' : 'Welcome back.';
+    $('#auth-title').textContent = signup ? 'Set up your admin account.' : reset ? 'Reset your password.' : updatePassword ? 'Choose a new password.' : 'Welcome back.';
     $('#auth-eyebrow').textContent = signup ? 'GET STARTED' : reset ? 'ACCOUNT RECOVERY' : updatePassword ? 'SECURE YOUR ACCOUNT' : 'YOUR WORKSPACE';
     $('#auth-subtitle').textContent = signup
-      ? 'Create an account to start tracking your optimization work.'
-      : reset ? 'We will send a password reset link to your email.'
+      ? 'This private workspace only allows the fixed owner email shown below.'
+      : reset ? 'We will send a password reset link to the owner email.'
       : updatePassword ? 'Choose a new password for your AdPulse account.'
       : 'Sign in to continue to your performance workspace.';
     $('#auth-submit').innerHTML = (signup ? 'Create account' : reset ? 'Send reset link' : updatePassword ? 'Update password' : 'Sign in') + ' <span aria-hidden="true">↗</span>';
@@ -224,8 +225,12 @@
   async function handleAuthSubmit(event) {
     event.preventDefault();
     if (!sb) return setMessage($('#auth-message'), 'Supabase client did not load. Refresh the page and try again.', 'error');
-    const email = $('#auth-email').value.trim();
+    const email = $('#auth-email').value.trim().toLowerCase();
     const password = $('#auth-password').value;
+    if (email !== OWNER_EMAIL) {
+      setMessage($('#auth-message'), 'This admin workspace is locked to ' + OWNER_EMAIL + '.', 'error');
+      return;
+    }
     const name = $('#auth-name').value.trim();
     const button = $('#auth-submit');
     const prior = button.innerHTML;
@@ -243,7 +248,8 @@
           options: { data: { full_name: name || email.split('@')[0] }, emailRedirectTo: window.location.origin + window.location.pathname }
         });
         if (!result.error && result.data && !result.data.session) {
-          setMessage($('#auth-message'), 'Account request received. Check your inbox to confirm your email, then sign in. If the email never arrives, review Supabase Auth email settings.', 'info');
+          $('#resend-confirmation').classList.remove('hidden');
+          setMessage($('#auth-message'), 'Account request received. Open Gmail for ' + OWNER_EMAIL + ' and click the Supabase confirmation link before signing in. If you cannot find it, use “Resend confirmation email”.', 'info');
           return;
         }
       } else if (state.authMode === 'reset') {
@@ -274,6 +280,14 @@
     const nextUser = session && session.user ? session.user : null;
     const nextId = nextUser ? nextUser.id : null;
     const currentId = state.user ? state.user.id : null;
+    if (nextUser && String(nextUser.email || '').toLowerCase() !== OWNER_EMAIL) {
+      state.user = null;
+      $('#app-shell').classList.add('hidden');
+      $('#auth-screen').classList.remove('hidden');
+      setMessage($('#auth-message'), 'Access denied. Only ' + OWNER_EMAIL + ' can use this admin workspace.', 'error');
+      await sb.auth.signOut();
+      return;
+    }
     if (nextId === currentId && ((nextId && !$('#app-shell').classList.contains('hidden')) || (!nextId && !$('#auth-screen').classList.contains('hidden')))) return;
 
     state.user = nextUser;
@@ -976,6 +990,24 @@
     $('#auth-form').addEventListener('submit', handleAuthSubmit);
     $('#auth-toggle').addEventListener('click', () => showAuthMode(state.authMode === 'signup' ? 'signin' : 'signup'));
     $('#forgot-password').addEventListener('click', () => showAuthMode('reset'));
+    $('#resend-confirmation').addEventListener('click', async () => {
+      const button = $('#resend-confirmation');
+      button.disabled = true;
+      setMessage($('#auth-message'), 'Sending confirmation email…', 'info');
+      try {
+        const result = await sb.auth.resend({
+          type: 'signup',
+          email: OWNER_EMAIL,
+          options: { emailRedirectTo: window.location.origin + window.location.pathname }
+        });
+        if (result.error) throw result.error;
+        setMessage($('#auth-message'), 'If the account still needs confirmation, a new link has been sent to ' + OWNER_EMAIL + '. Check Inbox and Spam.', 'info');
+      } catch (error) {
+        setMessage($('#auth-message'), errorMessage(error), 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
     $('#refresh-button').addEventListener('click', loadData);
     $('#refresh-signals').addEventListener('click', async () => { await loadData(); toast('Diagnostics refreshed.', 'success'); });
     $('#signout-button').addEventListener('click', async () => {
