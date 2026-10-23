@@ -48,3 +48,13 @@ Versioned SQL files are tracked under `supabase/migrations/`. The live schema an
 - Diagnostics use deterministic rules and are advisory, not causal explanations.
 - Optimization recommendations do not change bids or budgets in ad accounts.
 - The dashboard needs authenticated end-to-end testing with test accounts before broad public launch.
+
+
+## Single-owner login
+
+This deployment is locked to `sobujkhamar.official@gmail.com` at both the login UI and the Supabase Auth database trigger. The first login requires mailbox confirmation; use the confirmation message or the page's resend option. Use **Forgot password?** to set a password if the original signup password is not remembered.
+
+Set the Supabase Site URL and allowed redirect URL to:
+`https://sobujkhamarofficial-ctrl.github.io/sarver/`
+
+The app is a single-owner personal workspace, not a general user-registration service.
