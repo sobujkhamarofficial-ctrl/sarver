@@ -97,6 +97,19 @@
             <article class="kpi-card"><div class="kpi-top"><span>BLENDED ROAS</span><span class="kpi-icon icon-purple">↗</span></div><div class="kpi-value" id="kpi-roas">—</div><div class="kpi-foot"><span id="kpi-roas-note">Revenue ÷ spend</span></div></article>
           </div>
 
+          <section class="panel getting-started-panel" id="getting-started">
+            <div class="panel-heading">
+              <div><div class="eyebrow">YOUR NEXT BEST STEP</div><h2>Make your marketing data useful</h2><p id="setup-description">Follow these steps to turn campaign records into decisions.</p></div>
+              <span class="setup-progress" id="setup-progress">0 of 3 complete</span>
+            </div>
+            <div class="setup-steps" id="setup-steps">
+              <article class="setup-step"><span class="setup-number">1</span><div><b>Create your first campaign</b><p>Organize the work you want to track.</p></div><button class="small-action" data-action="new-campaign">Create campaign</button></article>
+              <article class="setup-step"><span class="setup-number">2</span><div><b>Add real performance data</b><p>Enter daily metrics or import a CSV report.</p></div><button class="small-action" data-action="new-metric">Add metrics</button></article>
+              <article class="setup-step"><span class="setup-number">3</span><div><b>Set goals and review signals</b><p>Compare performance against realistic targets.</p></div><button class="small-action" data-view="campaigns">Set targets</button></article>
+            </div>
+            <p class="setup-footnote">Ad-platform connections are not active yet. This version tracks real data you enter or import; it will not change live ad budgets or bids.</p>
+          </section>
+
           <div class="overview-grid">
             <section class="panel trend-panel">
               <div class="panel-heading"><div><div class="eyebrow">PERFORMANCE TREND</div><h2>Spend at a glance</h2><p>Daily ad spend across your tracked campaigns.</p></div><span class="panel-badge"><span class="status-dot"></span> Synced from entries</span></div>
@@ -126,6 +139,7 @@
 
         <section class="view" id="view-campaigns">
           <div class="page-heading heading-row"><div><div class="eyebrow">CAMPAIGN WORKSPACE</div><h1>Campaigns, <em>in context.</em></h1><p class="page-description">Organize your paid-media work and attach daily performance data.</p></div><div class="heading-actions"><button class="btn btn-secondary" data-action="new-metric">＋ Add daily metrics</button><button class="btn btn-primary" data-action="new-campaign">＋ New campaign</button></div></div>
+          <div class="data-tools-row"><div><b>Move data in and out</b><small>Import a CSV from a report, or export your full saved metrics history.</small></div><div class="data-tools-actions"><button class="btn btn-secondary" data-action="download-metrics-template">Download CSV template</button><button class="btn btn-secondary" data-action="import-metrics">Import CSV</button><button class="btn btn-primary" data-action="export-metrics">Export metrics</button></div><input id="metrics-csv-input" class="hidden" type="file" accept=".csv,text/csv" aria-label="Choose performance metrics CSV file"></div>
           <div class="filter-bar"><div class="search-field"><span>⌕</span><input type="search" id="campaign-search" placeholder="Search campaigns or platforms"></div><select id="campaign-status-filter" class="filter-select"><option value="all">All statuses</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option></select><span class="record-count" id="campaign-record-count">0 campaigns</span></div>
           <section class="panel"><div class="table-scroll"><table class="data-table"><thead><tr><th>CAMPAIGN</th><th>PLATFORM</th><th>BUDGET</th><th>SPEND</th><th>CTR</th><th>CPC</th><th>CPA</th><th>ROAS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody id="campaigns-table-body"></tbody></table></div></section>
           <div class="section-footnote">Campaign values are based on manually entered metrics. Native ad-platform integrations are not connected yet.</div>
