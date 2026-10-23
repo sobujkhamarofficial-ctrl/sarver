@@ -262,8 +262,8 @@
       } else if (state.authMode === 'update_password') {
         result = await sb.auth.updateUser({ password });
         if (!result.error) {
-          setMessage($('#auth-message'), 'Password updated successfully.', 'info');
           showAuthMode('signin');
+          setMessage($('#auth-message'), 'Password updated successfully. Sign in with your new password.', 'info');
           return;
         }
       }
@@ -296,6 +296,11 @@
       $('#app-shell').classList.add('hidden');
       $('#auth-screen').classList.remove('hidden');
       closeSidebar();
+      return;
+    }
+    if (state.authMode === 'update_password') {
+      $('#app-shell').classList.add('hidden');
+      $('#auth-screen').classList.remove('hidden');
       return;
     }
     $('#auth-screen').classList.add('hidden');
@@ -1071,10 +1076,8 @@
       return;
     }
     bindEvents();
-    showAuthMode('signin');
-    const { data, error } = await sb.auth.getSession();
-    if (error) toast(errorMessage(error), 'error');
-    await setSession(data ? data.session : null);
+    const recoveryRedirect = /(?:[?#&])type=recovery(?:[&#]|$)/i.test(window.location.href);
+    showAuthMode(recoveryRedirect ? 'update_password' : 'signin');
     sb.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         showAuthMode('update_password');
@@ -1084,6 +1087,9 @@
       }
       window.setTimeout(() => setSession(session), 0);
     });
+    const { data, error } = await sb.auth.getSession();
+    if (error) toast(errorMessage(error), 'error');
+    await setSession(data ? data.session : null);
   }
 
   document.addEventListener('DOMContentLoaded', boot);
