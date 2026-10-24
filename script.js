@@ -253,7 +253,7 @@
     const code = $('#auth-math').value.trim();
     const stage = secureGateChallengeToken ? 'confirm_code' : 'password';
 
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setMessage($('#auth-message'), 'Enter the authorized owner email.', 'error');
       return;
     }
