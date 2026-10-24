@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const SERVER_AUTH_GATE_MODE = true; // All dashboard access must pass the server-side password + six-digit code gate.
+  const SERVER_AUTH_GATE_MODE = true; // All dashboard access must pass the server-side password + six-digit code gate.\n  let secureGateChallengeToken = '';
   const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
@@ -216,6 +216,7 @@
   function configureSecureGateLogin() {
     state.previewMode = false;
     state.user = null;
+    secureGateChallengeToken = '';
     $('#auth-screen').classList.remove('hidden');
     $('#app-shell').classList.add('hidden');
     $('#name-field').classList.add('hidden');
@@ -223,18 +224,19 @@
     $('#password-field').classList.remove('hidden');
     $('#auth-password').required = true;
     $('#auth-password').autocomplete = 'current-password';
-    $('#math-field').classList.remove('hidden');
-    $('#auth-math').required = true;
-    $('#auth-math').value = '';
     $('#auth-password').value = '';
+    $('#math-field').classList.add('hidden');
+    $('#auth-math').required = false;
+    $('#auth-math').value = '';
+    $('#auth-email').readOnly = false;
     $('.auth-tools').forEach(item => item.classList.add('hidden'));
     $('#resend-confirmation').classList.add('hidden');
     $('#auth-eyebrow').textContent = 'OWNER ACCESS ONLY';
     $('#auth-title').textContent = 'Private workspace access.';
-    $('#auth-subtitle').textContent = 'Enter the authorized owner email, access password and six-digit confirmation code.';
-    $('#auth-submit').innerHTML = 'Verify access <span aria-hidden="true">↗</span>';
+    $('#auth-subtitle').textContent = 'Start by entering the authorized owner email and access password.';
+    $('#auth-submit').innerHTML = 'Verify password <span aria-hidden="true">↗</span>';
     $('#email-field').querySelector('small').textContent = 'Only the single authorized owner email is accepted.';
-    $('.auth-trust span:last-child').textContent = 'Both checks are validated on the server. Email confirmation links are not used.';
+    $('.auth-trust span:last-child').textContent = 'Password and confirmation code are checked on the server. Email verification is not used.';
     $('#signout-button').classList.add('hidden');
     setMessage($('#auth-message'), '', '');
   }
@@ -248,20 +250,32 @@
     const email = $('#auth-email').value.trim().toLowerCase();
     const password = $('#auth-password').value;
     const code = $('#auth-math').value.trim();
+    const stage = secureGateChallengeToken ? 'confirm_code' : 'password';
+
     if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
       setMessage($('#auth-message'), 'Enter the authorized owner email.', 'error');
       return;
     }
-    if (!password || !/^[0-9]{6}$/.test(code)) {
-      setMessage($('#auth-message'), 'Enter the access password and six-digit confirmation code.', 'error');
+    if (stage === 'password' && !password) {
+      setMessage($('#auth-message'), 'Enter the access password.', 'error');
+      return;
+    }
+    if (stage === 'confirm_code' && !/^[0-9]{6}$/.test(code)) {
+      setMessage($('#auth-message'), 'Enter the six-digit confirmation code.', 'error');
       return;
     }
 
     const button = $('#auth-submit');
     button.disabled = true;
-    button.innerHTML = 'Verifying securely…';
+    button.textContent = stage === 'password' ? 'Verifying password…' : 'Confirming access…';
     setMessage($('#auth-message'), '', '');
     try {
+      const requestBody = { stage, email };
+      if (stage === 'password') requestBody.password = password;
+      else {
+        requestBody.challenge_token = secureGateChallengeToken;
+        requestBody.code = code;
+      }
       const response = await fetch(SUPABASE_URL + '/functions/v1/auth-gate', {
         method: 'POST',
         headers: {
@@ -269,17 +283,46 @@
           'apikey': SUPABASE_PUBLISHABLE_KEY
         },
         cache: 'no-store',
-        body: JSON.stringify({ email, password, code })
+        body: JSON.stringify(requestBody)
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        if (response.status === 429) throw new Error('Too many failed attempts. Try again in about 15 minutes.');
-        if (response.status === 503) throw new Error('Secure login is not configured yet. The server owner must finish the one-time setup.');
-        throw new Error('The email, access password or confirmation code is incorrect.');
+        const message = response.status === 429
+          ? 'Too many failed attempts. Try again in about 15 minutes.'
+          : response.status === 503
+            ? 'Secure login is not configured yet. The server owner must finish the one-time setup.'
+            : stage === 'password'
+              ? 'The owner email or access password is incorrect.'
+              : 'The confirmation code is incorrect or has expired.';
+        const failure = new Error(message);
+        failure.status = response.status;
+        throw failure;
       }
+
+      if (stage === 'password') {
+        if (payload.step !== 'confirm_code' || !payload.challenge_token) {
+          throw new Error('The secure sign-in service returned an incomplete challenge. Try again.');
+        }
+        secureGateChallengeToken = payload.challenge_token;
+        $('#password-field').classList.add('hidden');
+        $('#auth-password').required = false;
+        $('#auth-password').value = '';
+        $('#math-field').classList.remove('hidden');
+        $('#auth-math').required = true;
+        $('#auth-email').readOnly = true;
+        $('#auth-eyebrow').textContent = 'SECOND CHECK';
+        $('#auth-title').textContent = 'Confirm your access.';
+        $('#auth-subtitle').textContent = 'Password accepted. Enter the fixed six-digit confirmation code to continue.';
+        button.textContent = 'Confirm code & open dashboard';
+        $('#auth-math').focus();
+        setMessage($('#auth-message'), 'First check passed. Complete the six-digit confirmation step.', 'info');
+        return;
+      }
+
       if (!payload.access_token || !payload.refresh_token) {
         throw new Error('The secure sign-in service returned an incomplete session. Try again.');
       }
+      secureGateChallengeToken = '';
       const result = await sb.auth.setSession({
         access_token: payload.access_token,
         refresh_token: payload.refresh_token
@@ -288,12 +331,17 @@
       $('#auth-password').value = '';
       $('#auth-math').value = '';
       await setSession(result.data.session);
-      toast('Access verified. Welcome to your workspace.', 'success');
+      toast('Both access checks passed. Welcome to your workspace.', 'success');
     } catch (error) {
+      if (error && error.status === 429) configureSecureGateLogin();
       setMessage($('#auth-message'), error && error.message ? error.message : 'Secure sign-in failed. Try again.', 'error');
     } finally {
       button.disabled = false;
-      if (button.isConnected) button.innerHTML = 'Verify access <span aria-hidden="true">↗</span>';
+      if (button.isConnected) {
+        button.innerHTML = secureGateChallengeToken
+          ? 'Confirm code & open dashboard <span aria-hidden="true">↗</span>'
+          : 'Verify password <span aria-hidden="true">↗</span>';
+      }
     }
   }
 
