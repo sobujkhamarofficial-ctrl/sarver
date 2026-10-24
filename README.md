@@ -18,6 +18,7 @@ https://sobujkhamarofficial-ctrl.github.io/sarver/
 - Experiment log for creative, audience, offer, landing-page and bidding tests
 - UTM URL builder and saved tracking-link library
 - Optimization history for changes, rationale, before/after notes and outcomes
+- Google Ads OAuth gateway foundation with encrypted refresh tokens, revocable scoped AI-agent tokens and read-only ad/campaign reporting
 
 ## Supabase backend
 
@@ -38,6 +39,12 @@ Set the following two **Edge Function secrets** in the Supabase Dashboard before
 
 Never commit these values to the repository or expose them in browser JavaScript. The function limits repeated failed attempts and the database denies browser clients access to its private gate configuration and challenge tables.
 
+## Google Ads gateway
+
+The server-side OAuth and read-only API gateway are deployed, but the integration remains **unconfigured until you add Google OAuth credentials, the Google Ads Developer Token and a local-generated token-encryption key to Supabase Edge Function Secrets** and authorize your Google Ads account. No Google credentials should be committed to this repository.
+
+Setup instructions, required secret names, redirect URI, allowed read-only actions, and the agent HTTP API are documented in [`docs/google-ads-gateway.md`](docs/google-ads-gateway.md). The first version cannot change budgets, bids, campaigns, or ad status. It does not expose arbitrary GAQL queries.
+
 ## Deploys
 
 The GitHub Actions workflow in `.github/workflows/deploy-pages.yml` publishes the repository's static files to GitHub Pages on pushes to `main`.
@@ -48,7 +55,7 @@ Versioned SQL files are tracked under `supabase/migrations/`. The live schema an
 
 ## Current limitations
 
-- Ad-platform APIs are not connected. Campaign metrics are added manually for now.
+- Google Ads live data cannot be read until the Google credentials are added and an account is authorized. Until then, manually entered campaign metrics remain available.
 - Diagnostics use deterministic rules and are advisory, not causal explanations.
 - Optimization recommendations do not change bids or budgets in ad accounts.
 - The dashboard needs authenticated end-to-end testing with test accounts before broad public launch.
