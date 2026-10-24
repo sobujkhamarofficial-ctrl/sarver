@@ -430,3 +430,51 @@ tbody tr:hover{background:#fbfcfa}
 .preview-only-tool{white-space:nowrap}
 @media(max-width:1100px){.smart-insights-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.smart-insight-card:last-child:nth-child(odd){grid-column:1/-1}}
 @media(max-width:650px){.smart-insights-panel{padding:14px}.smart-insights-grid{grid-template-columns:1fr}.smart-insight-card:last-child:nth-child(odd){grid-column:auto}.smart-insight-card{padding:13px}.demo-data-banner{align-items:flex-start;flex-wrap:wrap;padding:11px}.demo-data-copy{flex-basis:calc(100% - 60px)}.demo-data-banner .small-action{margin-left:54px}.preview-only-tool{flex:1!important}}
+
+
+/* Google Ads integration and scoped AI-agent access */
+.integration-permission {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--text, inherit);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.integration-permission input {
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+#agent-allowed-customer-ids {
+  min-height: 132px;
+}
+#agent-token-result {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line, rgba(127,127,127,.2));
+}
+#agent-token-value {
+  font-family: var(--font-mono, monospace);
+  overflow-wrap: anywhere;
+}
+#agent-tokens-list .saved-link-item,
+#google-ads-account-list .saved-link-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line, rgba(127,127,127,.18));
+}
+#agent-tokens-list .saved-link-item:last-child,
+#google-ads-account-list .saved-link-item:last-child {
+  border-bottom: 0;
+}
+#agent-tokens-list .saved-link-item p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+#agent-tokens-list .saved-link-item small {
+  color: var(--muted, #777);
+}
