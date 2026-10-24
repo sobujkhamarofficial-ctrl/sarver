@@ -2,6 +2,7 @@
   'use strict';
 
   const SERVER_AUTH_GATE_MODE = true; // All dashboard access must pass the server-side password + six-digit code gate.
+  const OWNER_EMAIL = 'sobujkhamar.official@gmail.com';
   let secureGateChallengeToken = '';
   const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
@@ -229,14 +230,15 @@
     $('#math-field').classList.add('hidden');
     $('#auth-math').required = false;
     $('#auth-math').value = '';
-    $('#auth-email').readOnly = false;
+    $('#auth-email').value = OWNER_EMAIL;
+    $('#auth-email').readOnly = true;
     $('.auth-tools').forEach(item => item.classList.add('hidden'));
     $('#resend-confirmation').classList.add('hidden');
     $('#auth-eyebrow').textContent = 'OWNER ACCESS ONLY';
     $('#auth-title').textContent = 'Private workspace access.';
-    $('#auth-subtitle').textContent = 'Start by entering the authorized owner email and access password.';
+    $('#auth-subtitle').textContent = 'Enter your access password. The owner email is fixed.';
     $('#auth-submit').innerHTML = 'Verify password <span aria-hidden="true">↗</span>';
-    $('#email-field').querySelector('small').textContent = 'Only the single authorized owner email is accepted.';
+    $('#email-field').querySelector('small').textContent = 'Fixed owner email — cannot be changed.';
     $('.auth-trust span:last-child').textContent = 'Password and confirmation code are checked on the server. Email verification is not used.';
     $('#signout-button').classList.add('hidden');
     setMessage($('#auth-message'), '', '');
@@ -248,7 +250,7 @@
       setMessage($('#auth-message'), 'The secure sign-in service is unavailable. Refresh and try again.', 'error');
       return;
     }
-    const email = $('#auth-email').value.trim().toLowerCase();
+    const email = OWNER_EMAIL;
     const password = $('#auth-password').value;
     const code = $('#auth-math').value.trim();
     const stage = secureGateChallengeToken ? 'confirm_code' : 'password';
