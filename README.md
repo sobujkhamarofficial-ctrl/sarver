@@ -8,7 +8,7 @@ https://sobujkhamarofficial-ctrl.github.io/sarver/
 
 ## Current features
 
-- Supabase Auth sign-in, account creation and password-reset flow
+- Single-owner testing login gate with server-verified password plus six-digit confirmation code
 - User-scoped campaign data protected by Row Level Security
 - Campaign records and daily performance metrics
 - KPIs: spend, conversions, CTR, CPC, CPA and ROAS
@@ -27,13 +27,16 @@ The browser app uses the Supabase project URL and a publishable key. A publishab
 
 The current initial data model is user-scoped. Each signed-in user can access only their own campaigns and related records. The first version is not yet an organization/team multi-tenant system, and there is no global super-admin control panel.
 
-## One-time Auth URL setup
+## Login gate setup
 
-In Supabase Dashboard, open **Authentication → URL Configuration** and set the Site URL to:
+The testing dashboard is restricted to the owner email `sobujkhamar.official@gmail.com`. It verifies a fixed access password first, then a fixed six-digit code, through the server-side `auth-gate` Edge Function. Email confirmation links are not part of this testing flow.
 
-`https://sobujkhamarofficial-ctrl.github.io/sarver/`
+Set the following two **Edge Function secrets** in the Supabase Dashboard before using the login gate:
 
-Add the same URL to the allowed Redirect URLs. This lets confirmation and password-recovery links return to the hosted app. Existing Auth settings were not changed by the code deployment.
+- `ADPULSE_GATE_PASSWORD`
+- `ADPULSE_GATE_PIN`
+
+Never commit these values to the repository or expose them in browser JavaScript. The function limits repeated failed attempts and the database denies browser clients access to its private gate configuration and challenge tables.
 
 ## Deploys
 
@@ -51,22 +54,3 @@ Versioned SQL files are tracked under `supabase/migrations/`. The live schema an
 - The dashboard needs authenticated end-to-end testing with test accounts before broad public launch.
 
 
-## Authentication and account setup
-
-Each person can create an account and sign in with their own email and password. New accounts may need email confirmation depending on the Supabase Auth configuration.
-
-Set the Supabase Site URL and allowed redirect URL to:
-`https://sobujkhamarofficial-ctrl.github.io/sarver/`
-
-New users can create accounts from the login screen. If email confirmation is enabled in Supabase Auth, they must confirm the address once before their first sign-in.
-
-Each authenticated account sees and edits its own workspace data under Row Level Security.
-
-## Temporary single-owner access gate
-
-The testing build uses the server-side Supabase Edge Function `auth-gate` to check the owner email, an access password and a six-digit confirmation code in two sequential steps. The fixed access password and code must be set as **Edge Function secrets** in the Supabase Dashboard:
-
-- `ADPULSE_GATE_PASSWORD`
-- `ADPULSE_GATE_PIN`
-
-Never commit these values to this repository or include them in browser code. The gate provisions the single owner Auth account server-side after both checks pass, marks its email as confirmed without sending a confirmation email, and limits repeated failed attempts. The database also blocks public sign-up and denies client access to the gate's server-only configuration tables.
