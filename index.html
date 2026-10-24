@@ -64,6 +64,7 @@
         <button class="nav-item" data-view="tasks"><span class="nav-icon">☷</span>Optimization queue<span id="task-count" class="nav-count hidden">0</span></button>
         <button class="nav-item" data-view="experiments"><span class="nav-icon">⧖</span>Experiments</button>
         <button class="nav-item" data-view="tracking"><span class="nav-icon">↗</span>Tracking toolkit</button>
+        <button class="nav-item" data-view="integrations"><span class="nav-icon">⌘</span>Integrations<span class="nav-shortcut">API</span></button>
         <button class="nav-item" data-view="history"><span class="nav-icon">◷</span>Optimization memory</button>
       </nav>
       <div class="sidebar-spacer"></div>
@@ -183,6 +184,56 @@
             </section>
             <section class="panel saved-links-panel"><div class="panel-heading"><div><div class="eyebrow">YOUR LIBRARY</div><h2>Saved tracking links</h2><p>Reusable campaign URLs.</p></div></div><div id="saved-links-list" class="saved-links-list"></div></section>
           </div>
+        </section>
+
+        <section class="view" id="view-integrations">
+          <div class="page-heading heading-row">
+            <div><div class="eyebrow">CONTROLLED API ACCESS</div><h1>One gateway. <em>Scoped agent access.</em></h1><p class="page-description">Connect Google Ads once, then issue separate, revocable read-only keys for approved AI agents.</p></div>
+            <div class="heading-actions"><button class="btn btn-secondary" data-action="refresh-google-ads">↻ Check setup</button><button class="btn btn-primary" data-action="connect-google-ads">Connect Google Ads ↗</button></div>
+          </div>
+
+          <div class="overview-grid">
+            <section class="panel">
+              <div class="panel-heading"><div><div class="eyebrow">GOOGLE ADS CONNECTION</div><h2>Account authorization</h2><p>Google handles consent. AdPulse stores the refresh token encrypted on the server.</p></div><span class="kpi-icon icon-green">◎</span></div>
+              <div id="google-ads-connection-state" class="setup-progress">Checking connection…</div>
+              <p id="google-ads-connection-detail" class="dialog-note">Connection status is loaded from the secure server.</p>
+              <div id="google-ads-setup-notice" class="inline-message" role="status"></div>
+              <div class="form-actions"><button class="btn btn-secondary" data-action="refresh-google-ads">Refresh status</button><button class="btn btn-primary" data-action="connect-google-ads">Connect / Reconnect</button></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading"><div><div class="eyebrow">ACCOUNT ALLOWLIST</div><h2>Available customer IDs</h2><p>Choose the exact account IDs an agent token may query.</p></div><span class="kpi-icon icon-blue">⌁</span></div>
+              <div id="google-ads-account-list" class="saved-links-list"><div class="empty-state compact"><b>No accounts loaded</b><p>Connect Google Ads and check the server setup first.</p></div></div>
+              <button class="btn btn-secondary btn-wide" data-action="refresh-google-ads">Load account IDs ↻</button>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">AI AGENT PERMISSIONS</div><h2>Create a restricted agent key</h2><p>The raw key is shown only once. AdPulse stores its hash, and each key has its own account allowlist and expiry.</p></div><span class="kpi-icon icon-purple">⌘</span></div>
+            <form id="agent-token-form" class="form-stack">
+              <label class="field">Agent name<input id="agent-token-label" type="text" maxlength="80" placeholder="e.g. Ad copy reviewer" required></label>
+              <div class="field"><span>Read-only permissions</span>
+                <label class="integration-permission"><input id="agent-scope-accounts" type="checkbox" value="accounts.read"> List approved Google Ads customer IDs</label>
+                <label class="integration-permission"><input id="agent-scope-ads" type="checkbox" value="ads.read" checked> Read ad copy (headlines, descriptions, final URLs)</label>
+                <label class="integration-permission"><input id="agent-scope-campaigns" type="checkbox" value="campaigns.read"> Read 30-day campaign performance</label>
+              </div>
+              <label class="field">Allowed customer IDs <small>Use Ctrl / Cmd to select multiple IDs. At least one account is required.</small><select id="agent-allowed-customer-ids" multiple size="5" required><option disabled value="">Connect Google Ads to load accounts</option></select></label>
+              <label class="field">Key expiry<select id="agent-token-days"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option></select></label>
+              <div class="form-actions"><button class="btn btn-primary" type="submit">Create restricted agent key ↗</button></div>
+              <div id="agent-token-message" class="inline-message" role="status"></div>
+              <div id="agent-token-result" class="hidden">
+                <label class="field">New agent key — copy it now <textarea id="agent-token-value" rows="3" readonly spellcheck="false"></textarea></label>
+                <p class="dialog-note">This key will not be shown again. Store it in the AI agent's server-side secret manager, not in a prompt or public code repository.</p>
+                <button class="btn btn-secondary" type="button" data-action="copy-agent-token">Copy agent key</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">KEY MANAGEMENT</div><h2>Issued agent keys</h2><p>Revoke a key immediately if an agent no longer needs access.</p></div><button class="btn btn-secondary" data-action="list-agent-tokens">Refresh keys ↻</button></div>
+            <div id="agent-tokens-list" class="saved-links-list"><div class="empty-state compact"><b>No keys loaded</b><p>Only the owner can list, issue or revoke agent keys.</p></div></div>
+          </section>
+          <div class="disclaimer"><span>ⓘ</span> Initial gateway permissions are read-only. It does not expose arbitrary GAQL, create or edit campaigns, change budgets, or enable/disable ads. Google OAuth and developer-token approval are still required before data can be read.</div>
         </section>
 
         <section class="view" id="view-history">
