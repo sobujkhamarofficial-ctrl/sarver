@@ -61,3 +61,12 @@ Set the Supabase Site URL and allowed redirect URL to:
 New users can create accounts from the login screen. If email confirmation is enabled in Supabase Auth, they must confirm the address once before their first sign-in.
 
 Each authenticated account sees and edits its own workspace data under Row Level Security.
+
+## Temporary single-owner access gate
+
+The testing build uses the server-side Supabase Edge Function `auth-gate` to check the owner email, an access password and a six-digit confirmation code in two sequential steps. The fixed access password and code must be set as **Edge Function secrets** in the Supabase Dashboard:
+
+- `ADPULSE_GATE_PASSWORD`
+- `ADPULSE_GATE_PIN`
+
+Never commit these values to this repository or include them in browser code. The gate provisions the single owner Auth account server-side after both checks pass, marks its email as confirmed without sending a confirmation email, and limits repeated failed attempts. The database also blocks public sign-up and denies client access to the gate's server-only configuration tables.

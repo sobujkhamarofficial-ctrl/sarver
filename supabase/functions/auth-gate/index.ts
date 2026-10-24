@@ -3,6 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const OWNER_EMAIL = "sobujkhamar.official@gmail.com";
 const ALLOWED_ORIGIN = "https://sobujkhamarofficial-ctrl.github.io";
 const CONFIG_TABLE = "adpulse_auth_gate_config";
+const CHALLENGES_TABLE = "adpulse_auth_gate_challenges";
+const CHALLENGES_TABLE = "adpulse_auth_gate_challenges";
 const ATTEMPTS_TABLE = "adpulse_auth_gate_attempts";
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILURES = 5;
@@ -161,21 +163,88 @@ Deno.serve(async (req: Request) => {
 
     let body: any = {};
     try { body = await req.json(); } catch { body = {}; }
+    const stage = typeof body.stage === "string" ? body.stage : "";
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body.password === "string" ? body.password : "";
     const code = typeof body.code === "string" ? body.code.trim() : "";
+    const challengeToken = typeof body.challenge_token === "string" ? body.challenge_token : "";
 
-    const valid = email === OWNER_EMAIL &&
-      constantTimeEqual(password, gatePassword) &&
-      constantTimeEqual(code, gatePin);
+    if (stage === "password") {
+      const validPassword = email === OWNER_EMAIL && constantTimeEqual(password, gatePassword);
+      if (!validPassword) {
+        const locked = await recordFailure(admin, ipHash, prior);
+        return jsonResponse({
+          message: locked
+            ? "Too many failed attempts. Try again later."
+            : "The owner email or access password is incorrect.",
+        }, locked ? 429 : 401, origin);
+      }
 
-    if (!valid) {
+      await admin.from(CHALLENGES_TABLE).delete().eq("ip_hash", ipHash).lt("expires_at", new Date().toISOString());
+      const token = randomSecret(32);
+      const challengeHash = await hashIp(token, ratePepper);
+      const inserted = await admin.from(CHALLENGES_TABLE).insert({
+        challenge_hash: challengeHash,
+        ip_hash: ipHash,
+        owner_email: OWNER_EMAIL,
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        attempts: 0,
+      });
+      if (inserted.error) throw new Error("challenge-create-failed");
+      return jsonResponse({
+        step: "confirm_code",
+        challenge_token: token,
+        expires_in: 300,
+      }, 200, origin);
+    }
+
+    if (stage !== "confirm_code") {
+      const locked = await recordFailure(admin, ipHash, prior);
+      return jsonResponse({
+        message: locked ? "Too many failed attempts. Try again later." : "Access verification failed.",
+      }, locked ? 429 : 401, origin);
+    }
+
+    const challengeHash = challengeToken ? await hashIp(challengeToken, ratePepper) : "";
+    const challengeResult = await admin.from(CHALLENGES_TABLE)
+      .select("challenge_hash, ip_hash, owner_email, expires_at, attempts, consumed_at")
+      .eq("challenge_hash", challengeHash)
+      .eq("ip_hash", ipHash)
+      .eq("owner_email", OWNER_EMAIL)
+      .maybeSingle();
+    if (challengeResult.error) throw new Error("challenge-read-failed");
+    const challenge = challengeResult.data;
+    const challengeIsValid = !!challenge &&
+      !challenge.consumed_at &&
+      Date.parse(challenge.expires_at) > Date.now() &&
+      email === OWNER_EMAIL;
+
+    if (!challengeIsValid || !constantTimeEqual(code, gatePin)) {
+      if (challenge && !challenge.consumed_at) {
+        const nextAttempts = Number(challenge.attempts || 0) + 1;
+        await admin.from(CHALLENGES_TABLE).update({
+          attempts: nextAttempts,
+          consumed_at: nextAttempts >= MAX_FAILURES ? new Date().toISOString() : null,
+        }).eq("challenge_hash", challenge.challenge_hash).is("consumed_at", null);
+      }
       const locked = await recordFailure(admin, ipHash, prior);
       return jsonResponse({
         message: locked
           ? "Too many failed attempts. Try again later."
-          : "The email, access password or confirmation code is incorrect.",
+          : "The confirmation code is incorrect or has expired.",
       }, locked ? 429 : 401, origin);
+    }
+
+    const consume = await admin.from(CHALLENGES_TABLE)
+      .update({ consumed_at: new Date().toISOString() })
+      .eq("challenge_hash", challenge.challenge_hash)
+      .eq("ip_hash", ipHash)
+      .is("consumed_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .select("challenge_hash");
+    if (consume.error) throw new Error("challenge-consume-failed");
+    if (!consume.data || consume.data.length !== 1) {
+      return jsonResponse({ message: "The confirmation code is incorrect or has expired." }, 401, origin);
     }
 
     const provisionMarker = await readOrCreateConfig(admin, "auth_provision_marker");
@@ -193,7 +262,6 @@ Deno.serve(async (req: Request) => {
         user_metadata: { full_name: "AdPulse Owner" },
       });
       if (created.error) {
-        // Another simultaneous valid request may have completed account creation.
         const reread = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
         if (reread.error) throw new Error("auth-user-create-failed");
         user = reread.data.users.find((item: any) => (item.email ?? "").toLowerCase() === OWNER_EMAIL);
