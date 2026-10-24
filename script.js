@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const SERVER_AUTH_GATE_MODE = true; // All dashboard access must pass the server-side password + six-digit code gate.\n  let secureGateChallengeToken = '';
+  const SERVER_AUTH_GATE_MODE = true; // All dashboard access must pass the server-side password + six-digit code gate.
+  let secureGateChallengeToken = '';
   const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
