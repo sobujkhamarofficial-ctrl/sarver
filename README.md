@@ -41,7 +41,7 @@ Never commit these values to the repository or expose them in browser JavaScript
 
 ## Google Ads gateway
 
-The server-side OAuth and read-only API gateway are deployed, but the integration remains **unconfigured until you add Google OAuth credentials, the Google Ads Developer Token and a local-generated token-encryption key to Supabase Edge Function Secrets** and authorize your Google Ads account. No Google credentials should be committed to this repository.
+The server-side OAuth and read-only API gateway are deployed, but the integration remains **unconfigured until you add Google OAuth credentials, Cloud-project API access approval and a locally generated token-encryption key to Supabase Edge Function Secrets** and authorize your Google Ads account. No Google credentials should be committed to this repository.
 
 Setup instructions, required secret names, redirect URI, allowed read-only actions, and the agent HTTP API are documented in [`docs/google-ads-gateway.md`](docs/google-ads-gateway.md). A compatible custom-API/OpenAPI schema is available in [`docs/google-ads-openapi.yaml`](docs/google-ads-openapi.yaml). The first version cannot change budgets, bids, campaigns, or ad status. It does not expose arbitrary GAQL queries.
 
