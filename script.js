@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TEMPORARY_PREVIEW_MODE = true; // Dashboard-only preview; keep all Supabase RLS policies enabled.
+  const SERVER_AUTH_GATE_MODE = true; // All dashboard access must pass the server-side password + six-digit code gate.
   const AUTH_REDIRECT_URL = 'https://sobujkhamarofficial-ctrl.github.io/sarver/';
   const SUPABASE_URL = 'https://gkmfjvlptyvsmlgpfpuz.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nY1J3hCTMCz4tZ996nSo8g_ee1OdYno';
@@ -212,6 +212,91 @@
     $('#auth-math').value = '';
   }
 
+
+  function configureSecureGateLogin() {
+    state.previewMode = false;
+    state.user = null;
+    $('#auth-screen').classList.remove('hidden');
+    $('#app-shell').classList.add('hidden');
+    $('#name-field').classList.add('hidden');
+    $('#name-field').querySelector('input').required = false;
+    $('#password-field').classList.remove('hidden');
+    $('#auth-password').required = true;
+    $('#auth-password').autocomplete = 'current-password';
+    $('#math-field').classList.remove('hidden');
+    $('#auth-math').required = true;
+    $('#auth-math').value = '';
+    $('#auth-password').value = '';
+    $('.auth-tools').forEach(item => item.classList.add('hidden'));
+    $('#resend-confirmation').classList.add('hidden');
+    $('#auth-eyebrow').textContent = 'OWNER ACCESS ONLY';
+    $('#auth-title').textContent = 'Private workspace access.';
+    $('#auth-subtitle').textContent = 'Enter the authorized owner email, access password and six-digit confirmation code.';
+    $('#auth-submit').innerHTML = 'Verify access <span aria-hidden="true">↗</span>';
+    $('#email-field').querySelector('small').textContent = 'Only the single authorized owner email is accepted.';
+    $('.auth-trust span:last-child').textContent = 'Both checks are validated on the server. Email confirmation links are not used.';
+    $('#signout-button').classList.add('hidden');
+    setMessage($('#auth-message'), '', '');
+  }
+
+  async function handleSecureGateLogin(event) {
+    event.preventDefault();
+    if (!sb) {
+      setMessage($('#auth-message'), 'The secure sign-in service is unavailable. Refresh and try again.', 'error');
+      return;
+    }
+    const email = $('#auth-email').value.trim().toLowerCase();
+    const password = $('#auth-password').value;
+    const code = $('#auth-math').value.trim();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      setMessage($('#auth-message'), 'Enter the authorized owner email.', 'error');
+      return;
+    }
+    if (!password || !/^[0-9]{6}$/.test(code)) {
+      setMessage($('#auth-message'), 'Enter the access password and six-digit confirmation code.', 'error');
+      return;
+    }
+
+    const button = $('#auth-submit');
+    button.disabled = true;
+    button.innerHTML = 'Verifying securely…';
+    setMessage($('#auth-message'), '', '');
+    try {
+      const response = await fetch(SUPABASE_URL + '/functions/v1/auth-gate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_PUBLISHABLE_KEY
+        },
+        cache: 'no-store',
+        body: JSON.stringify({ email, password, code })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 429) throw new Error('Too many failed attempts. Try again in about 15 minutes.');
+        if (response.status === 503) throw new Error('Secure login is not configured yet. The server owner must finish the one-time setup.');
+        throw new Error('The email, access password or confirmation code is incorrect.');
+      }
+      if (!payload.access_token || !payload.refresh_token) {
+        throw new Error('The secure sign-in service returned an incomplete session. Try again.');
+      }
+      const result = await sb.auth.setSession({
+        access_token: payload.access_token,
+        refresh_token: payload.refresh_token
+      });
+      if (result.error) throw new Error('Could not establish a secure session. Please try again.');
+      $('#auth-password').value = '';
+      $('#auth-math').value = '';
+      await setSession(result.data.session);
+      toast('Access verified. Welcome to your workspace.', 'success');
+    } catch (error) {
+      setMessage($('#auth-message'), error && error.message ? error.message : 'Secure sign-in failed. Try again.', 'error');
+    } finally {
+      button.disabled = false;
+      if (button.isConnected) button.innerHTML = 'Verify access <span aria-hidden="true">↗</span>';
+    }
+  }
+
   function configurePreviewLogin() {
     resetPreviewWorkspace();
     $('#auth-screen').classList.remove('hidden');
@@ -355,6 +440,7 @@
       $('#app-shell').classList.add('hidden');
       $('#auth-screen').classList.remove('hidden');
       closeSidebar();
+      if (SERVER_AUTH_GATE_MODE) configureSecureGateLogin();
       return;
     }
     if (state.authMode === 'update_password') {
@@ -1471,7 +1557,7 @@
 
   function bindEvents() {
     $('#auth-form').addEventListener('submit', event => {
-      if (TEMPORARY_PREVIEW_MODE) { handlePreviewLogin(event); return; }
+      if (SERVER_AUTH_GATE_MODE) { handleSecureGateLogin(event); return; }
       handleAuthSubmit(event);
     });
     $('#auth-toggle').addEventListener('click', () => showAuthMode(state.authMode === 'signup' ? 'signin' : 'signup'));
@@ -1558,28 +1644,36 @@
   }
 
   async function boot() {
-    if (TEMPORARY_PREVIEW_MODE) {
-      bindEvents();
-      state.previewMode = true;
-      state.user = null;
-      state.previewEmail = '';
-      $('#data-status-text').textContent = 'Preview login required · private data protected';
-      $('#data-status-text').parentElement.style.opacity = '1';
-      $('#profile-name').textContent = 'Preview user';
-      $('#profile-email').textContent = 'Not signed in';
-      $('#profile-avatar').textContent = 'P';
-      $('#topbar-avatar').textContent = 'P';
-      configurePreviewLogin();
-      return;
-    }
-
     if (!sb) {
       $('#auth-screen').classList.remove('hidden');
       $('#app-shell').classList.add('hidden');
       setMessage($('#auth-message'), 'Could not initialize the Supabase client. Refresh the page and try again.', 'error');
       return;
     }
+
     bindEvents();
+    if (SERVER_AUTH_GATE_MODE) {
+      state.previewMode = false;
+      state.user = null;
+      state.previewEmail = '';
+      sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          configureSecureGateLogin();
+          setMessage($('#auth-message'), 'Password recovery is disabled for this testing gate. Use the fixed access password and confirmation code.', 'info');
+          return;
+        }
+        window.setTimeout(() => setSession(session), 0);
+      });
+      const { data, error } = await sb.auth.getSession();
+      if (error) toast('Could not restore the saved session. Please sign in again.', 'error');
+      if (data && data.session) {
+        await setSession(data.session);
+      } else {
+        configureSecureGateLogin();
+      }
+      return;
+    }
+
     const recoveryRedirect = /(?:[?#&])type=recovery(?:[&#]|$)/i.test(window.location.href);
     showAuthMode(recoveryRedirect ? 'update_password' : 'signin');
     sb.auth.onAuthStateChange((event, session) => {
@@ -1595,6 +1689,5 @@
     if (error) toast(errorMessage(error), 'error');
     await setSession(data ? data.session : null);
   }
-
   document.addEventListener('DOMContentLoaded', boot);
 })();
