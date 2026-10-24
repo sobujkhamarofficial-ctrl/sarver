@@ -23,10 +23,14 @@ The current API endpoint uses Google Ads API **v26**. Update only after checking
 
    `https://gkmfjvlptyvsmlgpfpuz.supabase.co/functions/v1/google-ads-connect`
 
-5. In Google Ads, obtain a **Developer Token** from the API Center. Google Ads API calls require both OAuth 2.0 credentials and the Developer Token. A generic API key on its own is not sufficient.
+5. In Google Ads, obtain a **Developer Token** from the API Center. Google Ads API calls require OAuth 2.0 credentials and API access enabled/approved for the Google Cloud project that owns those credentials. A generic API key or the payment card on your Ads account does not grant API access. The old Developer Token onboarding path was sunset on September 9, 2026; new projects are managed from Google Cloud Console.
 6. Ensure the Google account used in the consent flow has access to the Google Ads account(s) you want this server to read.
+7. Enable **Google Ads API** in this same Google Cloud project, then open the **Google Ads API Overview** page and check the project's API access level. Enabling the API gives Test access; apply for Explorer access to query real production accounts. New API access levels are managed in Google Cloud, not through the old developer-token flow.
+8. If Google rejects the request, review the reason in Cloud Console. Make sure the project/billing account is not on a restricted Free Trial or suspended/disabled, and complete any brand/OAuth verification Google asks for. A card on the Google Ads billing profile is not a substitute for these project-level approvals.
 
 **Testing-mode note:** If the OAuth consent screen is External and its publishing status is still Testing, Google may expire refresh tokens after 7 days for this Ads scope. Move the app to the appropriate production status before relying on a long-lived connection, and follow Google's verification requirements where applicable.
+
+Enable the Google Ads API in the same Google Cloud project as the OAuth Client ID. Then visit the Google Ads API Overview page to apply for Explorer access to production accounts. New projects no longer apply through the old Ads API Center developer-token flow.
 
 An OpenAPI specification for AI tools that accept custom REST actions is available at [`google-ads-openapi.yaml`](google-ads-openapi.yaml).
 
@@ -36,6 +40,8 @@ Official references:
 - [Google OAuth web-server flow](https://developers.google.com/identity/protocols/oauth2/web-server)
 - [Google OAuth refresh-token expiration](https://developers.google.com/identity/protocols/oauth2#expiration)
 - [Google Ads API release notes](https://developers.google.com/google-ads/api/docs/release-notes)
+- [Current Google Ads API access levels](https://developers.google.com/google-ads/api/docs/api-policy/access-levels)
+- [Developer-token migration notice](https://developers.google.com/google-ads/api/docs/api-policy/developer-token)
 
 ## 2. Add secrets in Supabase
 
@@ -45,7 +51,6 @@ Open the [AdPulse Edge Function Secrets page](https://supabase.com/dashboard/pro
 | --- | --- |
 | `GOOGLE_ADS_CLIENT_ID` | The OAuth Web application client ID from Google Cloud |
 | `GOOGLE_ADS_CLIENT_SECRET` | The matching OAuth client secret |
-| `GOOGLE_ADS_DEVELOPER_TOKEN` | Your Google Ads API Center developer token |
 | `GOOGLE_ADS_REDIRECT_URI` | The exact redirect URI shown above |
 | `GOOGLE_ADS_TOKEN_ENCRYPTION_KEY` | A fresh 32-byte random key encoded as 64 hexadecimal characters |
 | `GOOGLE_ADS_LOGIN_CUSTOMER_ID` | Optional. Your 10-digit manager account ID if API calls must be made through a manager account |
