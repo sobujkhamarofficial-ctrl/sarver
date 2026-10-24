@@ -100,8 +100,8 @@ Deno.serve(async (req: Request) => {
       }
       if (!Number.isInteger(days) || days < 1 || days > 90) return json({ message: "Token expiry must be between 1 and 90 days." }, 400, origin);
       if (customerIds.some((id: string) => !/^\d{10}$/.test(id))) return json({ message: "Customer IDs must be ten digits." }, 400, origin);
-      if (scopes.some((s: string) => s === "ads.read" || s === "campaigns.read") && !customerIds.length) {
-        return json({ message: "Select at least one Google Ads customer ID for ads or campaign reporting access." }, 400, origin);
+      if (!customerIds.length) {
+        return json({ message: "Select at least one Google Ads customer ID to constrain this agent token." }, 400, origin);
       }
       const rawToken = randomAgentToken();
       const tokenHash = await sha256Hex(rawToken);
