@@ -23,7 +23,7 @@ The current API endpoint uses Google Ads API **v26**. Update only after checking
 
    `https://gkmfjvlptyvsmlgpfpuz.supabase.co/functions/v1/google-ads-connect`
 
-5. In Google Ads, obtain a **Developer Token** from the API Center. Google Ads API calls require OAuth 2.0 credentials and API access enabled/approved for the Google Cloud project that owns those credentials. A generic API key or the payment card on your Ads account does not grant API access. The old Developer Token onboarding path was sunset on September 9, 2026; new projects are managed from Google Cloud Console.
+5. Google Ads API calls require OAuth 2.0 credentials and API access enabled/approved for the Google Cloud project that owns those credentials. A generic API key or the payment card on your Ads account does not grant API access. The old Developer Token onboarding path was sunset on September 9, 2026; new projects are managed from Google Cloud Console.
 6. Ensure the Google account used in the consent flow has access to the Google Ads account(s) you want this server to read.
 7. Enable **Google Ads API** in this same Google Cloud project, then open the **Google Ads API Overview** page and check the project's API access level. Enabling the API gives Test access; apply for Explorer access to query real production accounts. New API access levels are managed in Google Cloud, not through the old developer-token flow.
 8. If Google rejects the request, review the reason in Cloud Console. Make sure the project/billing account is not on a restricted Free Trial or suspended/disabled, and complete any brand/OAuth verification Google asks for. A card on the Google Ads billing profile is not a substitute for these project-level approvals.
