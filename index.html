@@ -37,17 +37,17 @@
         <div class="mobile-auth-brand"><span class="brand-symbol"><i></i><i></i><i></i></span><b>adpulse<span class="brand-dot">.</span></b></div>
         <span class="eyebrow" id="auth-eyebrow">YOUR WORKSPACE</span>
         <h2 id="auth-title">Welcome back.</h2>
-        <p class="auth-subtitle" id="auth-subtitle">Start by entering the authorized owner email and access password.</p>
+        <p class="auth-subtitle" id="auth-subtitle">Enter your access password. The owner email is fixed.</p>
         <form id="auth-form" class="form-stack">
           <label id="name-field" class="field hidden">Full name<input id="auth-name" type="text" autocomplete="name" placeholder="Your name"></label>
-          <label id="email-field" class="field">Owner email <small>Only the authorized owner email is accepted.</small><input id="auth-email" type="email" autocomplete="username" placeholder="owner@example.com" required></label>
+          <label id="email-field" class="field">Owner email <small>Fixed owner email — cannot be changed.</small><input id="auth-email" type="email" value="sobujkhamar.official@gmail.com" autocomplete="username" readonly required></label>
           <label id="math-field" class="field hidden">Six-digit confirmation code <small>Enter the fixed test code.</small><input id="auth-math" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" placeholder="000000" required></label>
           <label id="password-field" class="field">Access password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="Enter access password" required></label>
           <button id="auth-submit" class="btn btn-primary btn-wide" type="submit">Sign in <span aria-hidden="true">↗</span></button>
         </form>
         <div class="auth-tools hidden"><button type="button" class="text-button" id="forgot-password">Forgot password?</button><span class="auth-separator"></span><button type="button" class="text-button" id="auth-toggle">Create an account</button></div><div class="auth-tools auth-tools-secondary hidden"><button type="button" class="text-button hidden" id="resend-confirmation">Resend confirmation email</button></div>
         <div id="auth-message" class="inline-message" role="status"></div>
-        <div class="auth-trust"><span class="lock-mark">⌑</span><span>Single-owner access. Password and code are verified on the server; no email confirmation link is used.</span></div>
+        <div class="auth-trust"><span class="lock-mark">⌑</span><span>Single-owner access. Owner email is fixed; password and confirmation code are checked on the server. No email verification link is required.</span></div>
       </div>
     </div>
   </section>
