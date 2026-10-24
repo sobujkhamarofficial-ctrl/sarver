@@ -1,0 +1,91 @@
+openapi: 3.1.0
+info:
+  title: AdPulse Google Ads Read-only Gateway
+  version: 1.0.0
+  description: >
+    A server-side, allowlisted gateway for reading approved Google Ads account
+    IDs, ad copy, and last-30-day campaign performance. Every request is checked
+    against the issued agent token's read-only scopes, expiration, revocation
+    status, and allowed customer IDs. No write actions or arbitrary GAQL are exposed.
+servers:
+  - url: https://gkmfjvlptyvsmlgpfpuz.supabase.co/functions/v1/google-ads-gateway
+security:
+  - AdPulseAgentKey: []
+paths:
+  /:
+    post:
+      operationId: googleAdsReadOnlyGateway
+      summary: Read approved Google Ads account, ad-copy, or campaign data
+      description: >
+        Use exactly one supported action. For list_ads and campaign_performance,
+        customer_id must be one of the IDs allowed for this agent key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - list_accounts
+                    - list_ads
+                    - campaign_performance
+                  description: >
+                    list_accounts requires accounts.read; list_ads requires ads.read;
+                    campaign_performance requires campaigns.read.
+                customer_id:
+                  type: string
+                  pattern: '^[0-9]{10}$'
+                  description: Required for list_ads and campaign_performance.
+            examples:
+              listAccounts:
+                summary: List approved account IDs
+                value:
+                  action: list_accounts
+              readAdCopy:
+                summary: Read ad copy from an approved account
+                value:
+                  action: list_ads
+                  customer_id: '1234567890'
+              readCampaignPerformance:
+                summary: Read last 30 days of campaign performance
+                value:
+                  action: campaign_performance
+                  customer_id: '1234567890'
+      responses:
+        '200':
+          description: Successful read-only Google Ads response
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Result fields depend on the requested action.
+                additionalProperties: true
+        '400':
+          description: Invalid or unsupported action or customer ID
+        '401':
+          description: Missing, expired, revoked, or invalid agent key
+        '403':
+          description: The key lacks the required scope or customer-ID allowlist
+        '409':
+          description: No Google Ads account is connected to AdPulse yet
+        '429':
+          description: Google Ads API rate limit reached
+        '502':
+          description: Google Ads API rejected or failed the request
+        '503':
+          description: Required server secrets are missing or the gateway is unavailable
+components:
+  securitySchemes:
+    AdPulseAgentKey:
+      type: apiKey
+      in: header
+      name: x-adpulse-agent-key
+      description: >
+        Create this key in AdPulse → Integrations. A raw key is shown only once;
+        never place it in a public repository, web page, or user prompt.
