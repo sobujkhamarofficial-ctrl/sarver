@@ -29,6 +29,8 @@
     links: [],
     history: [],
     targets: [],
+    googleAdsAccountIds: [],
+    agentTokens: [],
     loading: false,
     taskFilter: 'open',
     range: 14
@@ -41,6 +43,7 @@
     tasks: 'Optimization queue',
     experiments: 'Experiments',
     tracking: 'Tracking toolkit',
+    integrations: 'Integrations',
     history: 'Optimization memory'
   };
 
@@ -508,6 +511,7 @@
     $('#profile-avatar').textContent = initials(displayName);
     $('#topbar-avatar').textContent = initials(displayName);
     await loadData();
+    if (new URLSearchParams(window.location.search).has('google_ads')) handleGoogleAdsCallback();
   }
 
   async function queryRows(table, configure) {
@@ -1259,6 +1263,10 @@
     $('#breadcrumb-current').textContent = viewTitles[view];
     closeSidebar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (view === 'integrations' && state.user && !state.previewMode) {
+      refreshGoogleAdsStatus();
+      refreshAgentTokens();
+    }
   }
 
   function closeSidebar() { $('#sidebar').classList.remove('open'); }
@@ -1578,6 +1586,193 @@
     }
   }
 
+
+  async function secureFunctionCall(functionName, body) {
+    if (!sb || !state.user || state.previewMode) throw new Error('Sign in to your private AdPulse workspace first.');
+    const sessionResult = await sb.auth.getSession();
+    const session = sessionResult.data && sessionResult.data.session;
+    if (sessionResult.error || !session) throw new Error('Your session expired. Sign in again.');
+    const response = await fetch(SUPABASE_URL + '/functions/v1/' + functionName, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_PUBLISHABLE_KEY,
+        'Authorization': 'Bearer ' + session.access_token
+      },
+      cache: 'no-store',
+      body: JSON.stringify(body || {})
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      let message = payload.message || ('Server request failed with status ' + response.status + '.');
+      if (Array.isArray(payload.missing_secrets) && payload.missing_secrets.length) {
+        message += ' Missing server secrets: ' + payload.missing_secrets.join(', ') + '.';
+      }
+      const error = new Error(message);
+      error.status = response.status;
+      throw error;
+    }
+    return payload;
+  }
+
+  function renderGoogleAdsAccountOptions(ids) {
+    const select = $('#agent-allowed-customer-ids');
+    if (!select) return;
+    const selected = new Set(Array.from(select.selectedOptions || []).map(option => option.value));
+    state.googleAdsAccountIds = Array.from(new Set((ids || []).map(id => String(id))));
+    if (!state.googleAdsAccountIds.length) {
+      select.innerHTML = '<option disabled value="">No accessible customer IDs loaded yet</option>';
+      return;
+    }
+    select.innerHTML = state.googleAdsAccountIds.map(id =>
+      '<option value="' + esc(id) + '"' + (selected.has(id) ? ' selected' : '') + '>' + esc(id) + '</option>'
+    ).join('');
+  }
+
+  async function refreshGoogleAdsStatus() {
+    const stateNode = $('#google-ads-connection-state');
+    const detailNode = $('#google-ads-connection-detail');
+    const noticeNode = $('#google-ads-setup-notice');
+    if (!stateNode || !state.user || state.previewMode) return;
+    stateNode.textContent = 'Checking secure server configuration…';
+    setMessage(noticeNode, '', '');
+    try {
+      const status = await secureFunctionCall('google-ads-gateway', { action: 'connection_status' });
+      stateNode.textContent = status.connected ? 'Google Ads OAuth connected' : 'Google Ads not connected yet';
+      detailNode.textContent = status.connected
+        ? 'Connection saved on the server. Last successful API check: ' + (status.last_api_call_at ? new Date(status.last_api_call_at).toLocaleString() : 'not yet') + '. API version ' + (status.api_version || 'v26') + '.'
+        : 'Connect your Google account using the server OAuth flow. Google consent will be handled by Google.';
+      if (status.missing_secrets && status.missing_secrets.length) {
+        setMessage(noticeNode, 'Supabase Edge Function Secrets still need: ' + status.missing_secrets.join(', ') + '. Values must be entered in Supabase, never GitHub.', 'error');
+      } else {
+        setMessage(noticeNode, status.connected ? 'Server configuration looks complete. You can load accounts and create scoped agent keys.' : 'Server configuration looks complete. Use Connect Google Ads to grant consent.', 'info');
+      }
+      if (status.connected && status.configured) {
+        try {
+          const accounts = await secureFunctionCall('google-ads-gateway', { action: 'list_accounts' });
+          renderGoogleAdsAccountOptions(accounts.customer_ids || []);
+          const list = $('#google-ads-account-list');
+          list.innerHTML = accounts.customer_ids && accounts.customer_ids.length
+            ? accounts.customer_ids.map(id => '<div class="saved-link-item"><b>Customer ID</b><code>' + esc(id) + '</code></div>').join('')
+            : '<div class="empty-state compact"><b>No customer IDs returned</b><p>Confirm the connected Google account has Google Ads access and that the developer token is enabled.</p></div>';
+        } catch (error) {
+          setMessage(noticeNode, error.message || 'Could not read Google Ads accounts.', 'error');
+        }
+      } else {
+        renderGoogleAdsAccountOptions([]);
+        $('#google-ads-account-list').innerHTML = '<div class="empty-state compact"><b>Accounts are not ready</b><p>Complete server configuration and connect Google Ads, then refresh this page.</p></div>';
+      }
+    } catch (error) {
+      stateNode.textContent = 'Could not check server status';
+      detailNode.textContent = error.message || 'The Google Ads gateway did not respond.';
+      setMessage(noticeNode, error.message || 'Could not check setup.', 'error');
+    }
+  }
+
+  async function connectGoogleAds() {
+    try {
+      const result = await secureFunctionCall('google-ads-connect', { action: 'start' });
+      if (!result.authorization_url) throw new Error('The server did not return a Google consent link.');
+      window.location.assign(result.authorization_url);
+    } catch (error) {
+      setMessage($('#google-ads-setup-notice'), error.message || 'Could not begin Google Ads connection.', 'error');
+      toast(error.message || 'Could not begin Google Ads connection.', 'error');
+    }
+  }
+
+  function handleGoogleAdsCallback() {
+    const url = new URL(window.location.href);
+    const result = url.searchParams.get('google_ads');
+    if (!result) return;
+    url.searchParams.delete('google_ads');
+    window.history.replaceState({}, '', url.pathname + url.hash);
+    navigate('integrations');
+    const messages = {
+      connected: 'Google Ads authorization was saved securely. Check the status and load account IDs.',
+      denied: 'Google authorization was canceled. No new connection was saved.',
+      server_setup_missing: 'The server is missing required OAuth or token-encryption secrets. Add them in Supabase Edge Function Secrets.',
+      state_invalid: 'The Google connection request expired or was already used. Start Connect Google Ads again.',
+      token_exchange_failed: 'Google did not return a refresh token. Check OAuth client settings and the exact redirect URI, then reconnect.',
+      ads_scope_missing: 'Google Ads permission was not granted. Reconnect and approve the Google Ads scope.',
+      secure_storage_failed: 'The server could not securely store the Google connection.',
+      callback_failed: 'Google Ads connection failed on the server. Check the Edge Function logs.'
+    };
+    const message = messages[result] || 'Google Ads connection result: ' + result;
+    toast(message, result === 'connected' ? 'success' : 'error');
+    setMessage($('#google-ads-setup-notice'), message, result === 'connected' ? 'info' : 'error');
+    refreshGoogleAdsStatus();
+  }
+
+  async function refreshAgentTokens() {
+    const host = $('#agent-tokens-list');
+    if (!host || !state.user || state.previewMode) return;
+    host.innerHTML = '<div class="empty-state compact"><p>Loading agent keys…</p></div>';
+    try {
+      const result = await secureFunctionCall('google-ads-agent-tokens', { action: 'list' });
+      state.agentTokens = result.tokens || [];
+      if (!state.agentTokens.length) {
+        host.innerHTML = '<div class="empty-state compact"><b>No agent keys issued</b><p>Create one above and copy the raw key at creation time.</p></div>';
+        return;
+      }
+      host.innerHTML = state.agentTokens.map(token => {
+        const expired = Date.parse(token.expires_at) <= Date.now();
+        const revoked = !!token.revoked_at;
+        const status = revoked ? 'Revoked' : expired ? 'Expired' : 'Active';
+        return '<article class="saved-link-item">' +
+          '<div><b>' + esc(token.label) + '</b><small>' + esc(status) + ' · expires ' + esc(new Date(token.expires_at).toLocaleDateString()) + '</small></div>' +
+          '<p><b>Permissions:</b> ' + esc((token.scopes || []).join(', ')) + '</p>' +
+          '<p><b>Allowed accounts:</b> ' + esc((token.allowed_customer_ids || []).join(', ')) + '</p>' +
+          '<p><b>Last used:</b> ' + esc(token.last_used_at ? new Date(token.last_used_at).toLocaleString() : 'Never') + '</p>' +
+          (!revoked && !expired ? '<button class="btn btn-secondary" type="button" data-action="revoke-agent-token" data-id="' + esc(token.id) + '">Revoke key</button>' : '') +
+          '</article>';
+      }).join('');
+    } catch (error) {
+      host.innerHTML = '<div class="empty-state compact"><b>Could not load agent keys</b><p>' + esc(error.message || 'Request failed.') + '</p></div>';
+    }
+  }
+
+  async function createAgentToken() {
+    const label = $('#agent-token-label').value.trim();
+    const scopes = [
+      $('#agent-scope-accounts').checked ? 'accounts.read' : null,
+      $('#agent-scope-ads').checked ? 'ads.read' : null,
+      $('#agent-scope-campaigns').checked ? 'campaigns.read' : null
+    ].filter(Boolean);
+    const allowedCustomerIds = Array.from($('#agent-allowed-customer-ids').selectedOptions || []).map(option => option.value).filter(id => /^\d{10}$/.test(id));
+    const days = Number($('#agent-token-days').value || 30);
+    const resultNode = $('#agent-token-result');
+    const messageNode = $('#agent-token-message');
+    resultNode.classList.add('hidden');
+    setMessage(messageNode, 'Creating a restricted token…', 'info');
+    try {
+      const result = await secureFunctionCall('google-ads-agent-tokens', {
+        action: 'create',
+        label,
+        scopes,
+        allowed_customer_ids: allowedCustomerIds,
+        expires_in_days: days
+      });
+      $('#agent-token-value').value = result.token;
+      resultNode.classList.remove('hidden');
+      setMessage(messageNode, 'Agent key created. Copy it now; the server stores only its hash.', 'info');
+      toast('Restricted agent key created.', 'success');
+      await refreshAgentTokens();
+    } catch (error) {
+      setMessage(messageNode, error.message || 'Could not create agent key.', 'error');
+    }
+  }
+
+  async function revokeAgentToken(id) {
+    if (!id || !window.confirm('Revoke this AI agent key now? Any agent using it will lose gateway access.')) return;
+    try {
+      const result = await secureFunctionCall('google-ads-agent-tokens', { action: 'revoke', id });
+      toast(result.revoked ? 'Agent key revoked.' : 'The key was already revoked or could not be found.', result.revoked ? 'success' : 'info');
+      await refreshAgentTokens();
+    } catch (error) {
+      toast(error.message || 'Could not revoke agent key.', 'error');
+    }
+  }
+
   function handleAction(button) {
     const action = button.dataset.action;
     if (state.previewMode && !['copy-link', 'download-metrics-template', 'load-demo-workspace', 'clear-demo-workspace'].includes(action)) {
@@ -1604,12 +1799,22 @@
     if (action === 'new-history') openHistoryModal({ campaignId: id || null, taskId: button.dataset.taskId || null, title: button.dataset.title || '' });
     if (action === 'copy-link') copyText(button.dataset.url || '');
     if (action === 'advance-experiment') advanceExperiment(id, button.dataset.status);
+    if (action === 'refresh-google-ads') refreshGoogleAdsStatus();
+    if (action === 'connect-google-ads') connectGoogleAds();
+    if (action === 'list-agent-tokens') refreshAgentTokens();
+    if (action === 'create-agent-token') createAgentToken();
+    if (action === 'copy-agent-token') copyText($('#agent-token-value').value);
+    if (action === 'revoke-agent-token') revokeAgentToken(id);
   }
 
   function bindEvents() {
     $('#auth-form').addEventListener('submit', event => {
       if (SERVER_AUTH_GATE_MODE) { handleSecureGateLogin(event); return; }
       handleAuthSubmit(event);
+    });
+    $('#agent-token-form').addEventListener('submit', event => {
+      event.preventDefault();
+      createAgentToken();
     });
     $('#auth-toggle').addEventListener('click', () => showAuthMode(state.authMode === 'signup' ? 'signin' : 'signup'));
     $('#forgot-password').addEventListener('click', () => showAuthMode('reset'));
