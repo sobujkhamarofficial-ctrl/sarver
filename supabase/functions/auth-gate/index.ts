@@ -4,7 +4,6 @@ const OWNER_EMAIL = "sobujkhamar.official@gmail.com";
 const ALLOWED_ORIGIN = "https://sobujkhamarofficial-ctrl.github.io";
 const CONFIG_TABLE = "adpulse_auth_gate_config";
 const CHALLENGES_TABLE = "adpulse_auth_gate_challenges";
-const CHALLENGES_TABLE = "adpulse_auth_gate_challenges";
 const ATTEMPTS_TABLE = "adpulse_auth_gate_attempts";
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILURES = 5;
