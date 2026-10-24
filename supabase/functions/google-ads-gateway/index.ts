@@ -73,7 +73,6 @@ function missingGoogleSecrets() {
   const missing: string[] = [];
   if (!Deno.env.get("GOOGLE_ADS_CLIENT_ID")) missing.push("GOOGLE_ADS_CLIENT_ID");
   if (!Deno.env.get("GOOGLE_ADS_CLIENT_SECRET")) missing.push("GOOGLE_ADS_CLIENT_SECRET");
-  if (!Deno.env.get("GOOGLE_ADS_DEVELOPER_TOKEN")) missing.push("GOOGLE_ADS_DEVELOPER_TOKEN");
   if (!/^[0-9a-fA-F]{64}$/.test(Deno.env.get("GOOGLE_ADS_TOKEN_ENCRYPTION_KEY") ?? "")) missing.push("GOOGLE_ADS_TOKEN_ENCRYPTION_KEY");
   return missing;
 }
@@ -179,7 +178,6 @@ function customerId(value: unknown): string {
 async function googleRequest(path: string, accessToken: string, method = "GET", body?: unknown) {
   const headers: Record<string, string> = {
     "Authorization": "Bearer " + accessToken,
-    "developer-token": Deno.env.get("GOOGLE_ADS_DEVELOPER_TOKEN") ?? "",
     "Accept": "application/json",
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
