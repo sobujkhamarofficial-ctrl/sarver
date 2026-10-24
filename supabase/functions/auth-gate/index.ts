@@ -258,7 +258,7 @@ Deno.serve(async (req: Request) => {
         password: internalPassword,
         email_confirm: true,
         app_metadata: { adpulse_provision_marker: provisionMarker },
-        user_metadata: { full_name: "AdPulse Owner" },
+        user_metadata: { full_name: "AdPulse Owner", adpulse_provision_marker: provisionMarker },
       });
       if (created.error) {
         const reread = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
