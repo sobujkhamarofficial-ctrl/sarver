@@ -94,7 +94,6 @@ function configured() {
   return {
     clientId: Deno.env.get("GOOGLE_ADS_CLIENT_ID") ?? "",
     clientSecret: Deno.env.get("GOOGLE_ADS_CLIENT_SECRET") ?? "",
-    developerToken: Deno.env.get("GOOGLE_ADS_DEVELOPER_TOKEN") ?? "",
     redirectUri: Deno.env.get("GOOGLE_ADS_REDIRECT_URI") ?? "",
     encryptionKey: Deno.env.get("GOOGLE_ADS_TOKEN_ENCRYPTION_KEY") ?? "",
   };
