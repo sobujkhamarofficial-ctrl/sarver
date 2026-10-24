@@ -26,10 +26,15 @@ The current API endpoint uses Google Ads API **v26**. Update only after checking
 5. In Google Ads, obtain a **Developer Token** from the API Center. Google Ads API calls require both OAuth 2.0 credentials and the Developer Token. A generic API key on its own is not sufficient.
 6. Ensure the Google account used in the consent flow has access to the Google Ads account(s) you want this server to read.
 
+**Testing-mode note:** If the OAuth consent screen is External and its publishing status is still Testing, Google may expire refresh tokens after 7 days for this Ads scope. Move the app to the appropriate production status before relying on a long-lived connection, and follow Google's verification requirements where applicable.
+
+An OpenAPI specification for AI tools that accept custom REST actions is available at [`google-ads-openapi.yaml`](google-ads-openapi.yaml).
+
 Official references:
 - [Google Ads API authorization and required headers](https://developers.google.com/google-ads/api/rest/auth)
 - [Google Ads OAuth overview](https://developers.google.com/google-ads/api/docs/oauth/overview)
 - [Google OAuth web-server flow](https://developers.google.com/identity/protocols/oauth2/web-server)
+- [Google OAuth refresh-token expiration](https://developers.google.com/identity/protocols/oauth2#expiration)
 - [Google Ads API release notes](https://developers.google.com/google-ads/api/docs/release-notes)
 
 ## 2. Add secrets in Supabase
