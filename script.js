@@ -334,7 +334,7 @@
       await setSession(result.data.session);
       toast('Both access checks passed. Welcome to your workspace.', 'success');
     } catch (error) {
-      if (error && error.status === 429) configureSecureGateLogin();
+      if (error && (error.status === 429 || (stage === 'confirm_code' && error.status === 503))) configureSecureGateLogin();
       setMessage($('#auth-message'), error && error.message ? error.message : 'Secure sign-in failed. Try again.', 'error');
     } finally {
       button.disabled = false;
