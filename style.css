@@ -490,3 +490,15 @@ tbody tr:hover{background:#fbfcfa}
 .button-spinner{display:inline-block;width:15px;height:15px;flex:0 0 15px;border:2px solid rgba(24,37,29,.25);border-top-color:#18251d;border-radius:50%;animation:buttonSpin .7s linear infinite}
 @keyframes buttonSpin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.button-spinner{animation-duration:1.5s}}
+
+/* v20261102-2: make password visibility and authentication progress unmistakable */
+.password-input-wrap{gap:0}
+.password-input-wrap input{height:46px;padding-right:76px;font-size:14px;letter-spacing:.02em}
+.password-visibility-toggle{right:8px;min-width:48px;min-height:32px;border:1px solid #dce4dd;background:#f8faf7;color:#315b42;font-size:11px;font-weight:800;z-index:2}
+.password-visibility-toggle:hover{background:#edf4e9;border-color:#b9cbb8;text-decoration:none}
+#auth-submit{min-height:48px}
+#auth-submit.is-loading{opacity:1;background:#a8df5c;border-color:#a8df5c;color:#18251d}
+#auth-submit .button-spinner{width:17px;height:17px;flex-basis:17px;border-width:2.5px}
+#auth-message.info{display:block;margin-top:2px;padding:9px 11px;border:1px solid #e2eadc;border-radius:8px;background:#f7fbf4;color:#365c3e}
+#auth-message.error{display:block;margin-top:2px;padding:9px 11px;border:1px solid #f1d8d3;border-radius:8px;background:#fff8f6;color:#a33f36}
+
