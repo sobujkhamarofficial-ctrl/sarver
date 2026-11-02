@@ -478,3 +478,15 @@ tbody tr:hover{background:#fbfcfa}
 #agent-tokens-list .saved-link-item small {
   color: var(--muted, #777);
 }
+
+/* Login usability: reveal password on demand and show clear processing feedback */
+.password-input-wrap{position:relative;display:flex;align-items:center;width:100%}
+.password-input-wrap input{padding-right:66px}
+.password-visibility-toggle{position:absolute;right:9px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#59765f;font-size:11px;font-weight:700;line-height:1;padding:7px 5px;border-radius:5px}
+.password-visibility-toggle:hover{text-decoration:underline;color:#315b42}
+.password-visibility-toggle:focus-visible{outline:3px solid rgba(130,207,56,.55);outline-offset:2px}
+.btn.is-loading{cursor:wait;opacity:.86;transform:none}
+.btn.is-loading:hover{transform:none}
+.button-spinner{display:inline-block;width:15px;height:15px;flex:0 0 15px;border:2px solid rgba(24,37,29,.25);border-top-color:#18251d;border-radius:50%;animation:buttonSpin .7s linear infinite}
+@keyframes buttonSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.button-spinner{animation-duration:1.5s}}
