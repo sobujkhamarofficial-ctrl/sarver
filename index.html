@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261102-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js" defer></script>
+  <script src="script.js?v=20261102-2" defer></script>
 </head>
 <body>
   <div id="toast-region" class="toast-region" aria-live="polite"></div>
@@ -43,8 +43,9 @@
           <label id="email-field" class="field">Owner email <small>Fixed owner email — cannot be changed.</small><input id="auth-email" type="email" value="sobujkhamar.official@gmail.com" autocomplete="username" readonly required></label>
           <label id="math-field" class="field hidden">Six-digit confirmation code <small>Enter the fixed test code.</small><input id="auth-math" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" placeholder="000000" required></label>
           <label id="password-field" class="field">Access password
+            <small>Use your server access password (minimum 20 characters).</small>
             <span class="password-input-wrap">
-              <input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="Enter access password" required>
+              <input id="auth-password" type="password" autocomplete="current-password" minlength="20" placeholder="Enter access password" required>
               <button id="toggle-password" class="password-visibility-toggle" type="button" aria-label="Show password" aria-controls="auth-password" aria-pressed="false">Show</button>
             </span>
           </label>
