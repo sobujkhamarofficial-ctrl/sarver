@@ -315,7 +315,7 @@
         const message = response.status === 429
           ? 'Too many failed attempts. Try again in about 15 minutes.'
           : response.status === 503
-            ? 'Secure login is not configured yet. The server owner must finish the one-time setup.'
+            ? 'Server login setup is incomplete. Check that ADPULSE_GATE_PASSWORD contains at least 20 characters and ADPULSE_GATE_PIN contains exactly six digits.'
             : stage === 'password'
               ? 'The owner email or access password is incorrect.'
               : 'The confirmation code is incorrect or has expired.';
