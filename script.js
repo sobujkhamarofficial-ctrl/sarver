@@ -222,10 +222,15 @@
     const input = $('#auth-password');
     const toggle = $('#toggle-password');
     if (!input || !toggle) return;
-    input.type = visible ? 'text' : 'password';
+    const cursorStart = input.selectionStart;
+    const cursorEnd = input.selectionEnd;
+    input.setAttribute('type', visible ? 'text' : 'password');
     toggle.textContent = visible ? 'Hide' : 'Show';
     toggle.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
     toggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    if (document.activeElement === input && cursorStart !== null && cursorEnd !== null) {
+      try { input.setSelectionRange(cursorStart, cursorEnd); } catch (_) {}
+    }
   }
 
   function configureSecureGateLogin() {
@@ -458,7 +463,7 @@
     const password = $('#auth-password').value;
     const name = $('#auth-name').value.trim();
     if (!email) { setMessage($('#auth-message'), 'Enter your email address.', 'error'); return; }
-    if (state.authMode !== 'reset' && password.length < 8) { setMessage($('#auth-message'), 'Use a password with at least 8 characters.', 'error'); return; }
+    if (state.authMode !== 'reset' && password.length < 20) { setMessage($('#auth-message'), 'Use a password with at least 20 characters.', 'error'); return; }
     if (state.authMode === 'signup' && !name) { setMessage($('#auth-message'), 'Enter your name to create an account.', 'error'); return; }
 
     const button = $('#auth-submit');
