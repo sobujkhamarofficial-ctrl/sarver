@@ -218,6 +218,16 @@
   }
 
 
+  function setPasswordVisibility(visible) {
+    const input = $('#auth-password');
+    const toggle = $('#toggle-password');
+    if (!input || !toggle) return;
+    input.type = visible ? 'text' : 'password';
+    toggle.textContent = visible ? 'Hide' : 'Show';
+    toggle.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+    toggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+  }
+
   function configureSecureGateLogin() {
     state.previewMode = false;
     state.user = null;
@@ -230,6 +240,7 @@
     $('#auth-password').required = true;
     $('#auth-password').autocomplete = 'current-password';
     $('#auth-password').value = '';
+    setPasswordVisibility(false);
     $('#math-field').classList.add('hidden');
     $('#auth-math').required = false;
     $('#auth-math').value = '';
@@ -272,9 +283,12 @@
     }
 
     const button = $('#auth-submit');
+    const loadingLabel = stage === 'password' ? 'Verifying password…' : 'Confirming access…';
     button.disabled = true;
-    button.textContent = stage === 'password' ? 'Verifying password…' : 'Confirming access…';
-    setMessage($('#auth-message'), '', '');
+    button.classList.add('is-loading');
+    button.setAttribute('aria-busy', 'true');
+    button.innerHTML = '<span class="button-spinner" aria-hidden="true"></span><span>' + esc(loadingLabel) + '</span>';
+    setMessage($('#auth-message'), 'Please wait while the server checks your access…', 'info');
     try {
       const requestBody = { stage, email };
       if (stage === 'password') requestBody.password = password;
@@ -343,6 +357,8 @@
       setMessage($('#auth-message'), error && error.message ? error.message : 'Secure sign-in failed. Try again.', 'error');
     } finally {
       button.disabled = false;
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
       if (button.isConnected) {
         button.innerHTML = secureGateChallengeToken
           ? 'Confirm code & open dashboard <span aria-hidden="true">↗</span>'
@@ -427,6 +443,7 @@
     $('#auth-password').required = !reset;
     $('#auth-password').autocomplete = signup || updatePassword ? 'new-password' : 'current-password';
     $('#auth-password').placeholder = signup || updatePassword ? 'At least 8 characters' : 'Your password';
+    setPasswordVisibility(false);
     $('#math-field').classList.add('hidden');
     $('#auth-math').required = false;
     $('.auth-tools').forEach(item => item.classList.remove('hidden'));
@@ -446,9 +463,12 @@
 
     const button = $('#auth-submit');
     const prior = button.innerHTML;
+    const loadingLabel = state.authMode === 'signup' ? 'Creating account…' : state.authMode === 'reset' ? 'Sending email…' : state.authMode === 'update_password' ? 'Updating…' : 'Signing in…';
     button.disabled = true;
-    button.textContent = state.authMode === 'signup' ? 'Creating account…' : state.authMode === 'reset' ? 'Sending email…' : state.authMode === 'update_password' ? 'Updating…' : 'Signing in…';
-    setMessage($('#auth-message'), '', '');
+    button.classList.add('is-loading');
+    button.setAttribute('aria-busy', 'true');
+    button.innerHTML = '<span class="button-spinner" aria-hidden="true"></span><span>' + esc(loadingLabel) + '</span>';
+    setMessage($('#auth-message'), 'Please wait while your request is processed…', 'info');
     try {
       let result;
       if (state.authMode === 'signin') {
@@ -479,6 +499,8 @@
       setMessage($('#auth-message'), errorMessage(error), 'error');
     } finally {
       button.disabled = false;
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
       if (button.isConnected) button.innerHTML = prior;
     }
   }
@@ -1811,6 +1833,9 @@
     $('#auth-form').addEventListener('submit', event => {
       if (SERVER_AUTH_GATE_MODE) { handleSecureGateLogin(event); return; }
       handleAuthSubmit(event);
+    });
+    $('#toggle-password').addEventListener('click', () => {
+      setPasswordVisibility($('#auth-password').type === 'password');
     });
     $('#agent-token-form').addEventListener('submit', event => {
       event.preventDefault();
